@@ -9,6 +9,8 @@ SQL.TableManager = function (owner) {
     };
     this.selection = [];
     this.adding = false;
+    this.clipboard = null; // stores copied table data
+    this.pendingTablePosition = null; // stores position for pending table creation
 
     var ids = [
         "addtable",
@@ -162,17 +164,18 @@ SQL.TableManager.prototype.click = function (e) {
     
     var newtable = false;
     if (this.adding) {
-        this.adding = false;
-        OZ.DOM.removeClass("area", "adding");
-        this.dom.addtable.value = this.oldvalue;
+        // Store the click position for table creation
         var scroll = OZ.DOM.scroll();
-        var x = e.clientX + scroll[0];
-        var y = e.clientY + scroll[1];
-        newtable = this.owner.addTable(_("newtable"), x, y);
-        var r = newtable.addRow("id", { ai: true });
-        var k = newtable.addKey("PRIMARY", "");
-        k.addRow(r);
+        this.pendingTablePosition = {
+            x: e.clientX + scroll[0],
+            y: e.clientY + scroll[1]
+        };
+        
+        // Show the popup first, don't create table yet
+        this.showAddTableDialog();
+        return;
     }
+    
     this.select(newtable);
     this.owner.rowManager.select(false);
     if (this.selection.length == 1) {
@@ -183,9 +186,15 @@ SQL.TableManager.prototype.click = function (e) {
 SQL.TableManager.prototype.preAdd = function (e) {
     /* click add new table */
     if (this.adding) {
+        // Cancel adding mode
         this.adding = false;
+        this.pendingTablePosition = null;
         OZ.DOM.removeClass("area", "adding");
         this.dom.addtable.value = this.oldvalue;
+        // Close window if open
+        if (this.owner.window.state) {
+            this.owner.window.close();
+        }
     } else {
         this.adding = true;
         OZ.DOM.addClass("area", "adding");
@@ -221,6 +230,81 @@ SQL.TableManager.prototype.remove = function (e) {
     }
 };
 
+SQL.TableManager.prototype.showAddTableDialog = function () {
+    /* show dialog for creating new table */
+    // Clear the form
+    this.dom.name.value = _("newtable");
+    this.dom.comment.value = "";
+    
+    // Store a flag to track if table was created
+    this.tableCreatedFromDialog = false;
+    
+    // Store original close function to handle cancel
+    var originalClose = this.owner.window.close;
+    var self = this;
+    
+    // Wrap close to handle cancel
+    this.owner.window.close = function() {
+        // If canceling during add (window is closing but table wasn't created), clean up
+        if (self.adding && self.pendingTablePosition && !self.tableCreatedFromDialog) {
+            self.adding = false;
+            self.pendingTablePosition = null;
+            OZ.DOM.removeClass("area", "adding");
+            self.dom.addtable.value = self.oldvalue;
+        }
+        // Restore original and call it
+        self.owner.window.close = originalClose;
+        originalClose.call(this);
+    };
+    
+    // Open window with callback to create table
+    this.owner.window.open(_("edittable"), this.dom.container, this.createPendingTable.bind(this));
+    
+    // Pre-select table name
+    this.dom.name.focus();
+    if (OZ.ie) {
+        try {
+            this.dom.name.select();
+        } catch (e) {}
+    } else {
+        this.dom.name.setSelectionRange(0, this.dom.name.value.length);
+    }
+};
+
+SQL.TableManager.prototype.createPendingTable = function () {
+    /* create the pending table after user confirms */
+    if (!this.pendingTablePosition) {
+        return;
+    }
+    
+    var name = this.dom.name.value.trim();
+    if (!name) {
+        name = _("newtable");
+    }
+    
+    var comment = this.dom.comment.value;
+    
+    // Mark that we're creating (not canceling)
+    this.tableCreatedFromDialog = true;
+    
+    // Create the table at the stored position
+    var newtable = this.owner.addTable(name, this.pendingTablePosition.x, this.pendingTablePosition.y);
+    newtable.setComment(comment);
+    var r = newtable.addRow("id", { ai: true });
+    var k = newtable.addKey("PRIMARY", "");
+    k.addRow(r);
+    
+    // Clean up
+    this.adding = false;
+    this.pendingTablePosition = null;
+    OZ.DOM.removeClass("area", "adding");
+    this.dom.addtable.value = this.oldvalue;
+    
+    // Select the new table
+    this.select(newtable);
+    this.owner.rowManager.select(false);
+};
+
 SQL.TableManager.prototype.edit = function (e) {
     this.owner.window.open(_("edittable"), this.dom.container, this.save);
 
@@ -253,6 +337,69 @@ SQL.TableManager.prototype.save = function () {
     this.selection[0].setComment(this.dom.comment.value);
 };
 
+SQL.TableManager.prototype.copy = function () {
+    /* copy selected table to clipboard */
+    if (this.selection.length != 1) {
+        return;
+    }
+    var table = this.selection[0];
+    var xmlString = table.toXML();
+    // Parse XML to get a clean copy
+    var parser = new DOMParser();
+    var xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    this.clipboard = {
+        type: "table",
+        xml: xmlDoc.documentElement,
+        originalName: table.getTitle()
+    };
+};
+
+SQL.TableManager.prototype.paste = function () {
+    /* paste table from clipboard */
+    if (!this.clipboard || this.clipboard.type != "table") {
+        return;
+    }
+    
+    // Clone the XML node to avoid modifying the original
+    var table = this.clipboard.xml.cloneNode(true);
+    var originalName = this.clipboard.originalName;
+    var newName = originalName + "_copy";
+    
+    // Ensure unique name
+    var nameCounter = 1;
+    while (this.owner.tables.some(function(t) { return t.getTitle() == newName; })) {
+        newName = originalName + "_copy" + (nameCounter > 1 ? nameCounter : "");
+        nameCounter++;
+    }
+    
+    // Update the name in the XML
+    table.setAttribute("name", newName);
+    
+    // Calculate offset position (far enough to avoid overlap)
+    var offsetX = 200;
+    var offsetY = 200;
+    var x = parseInt(table.getAttribute("x")) || 0;
+    var y = parseInt(table.getAttribute("y")) || 0;
+    
+    // Update the position in the XML BEFORE calling fromXML
+    // This ensures fromXML uses the offset position
+    table.setAttribute("x", x + offsetX);
+    table.setAttribute("y", y + offsetY);
+    
+    var maxZ = this.owner.getMaxZ();
+    
+    // Create new table (position will be set by fromXML)
+    var newTable = this.owner.addTable(newName, 0, 0);
+    newTable.setZ(maxZ + 1);
+    
+    // Load data from XML
+    newTable.fromXML(table);
+    
+    // Select the new table
+    this.select(newTable);
+    this.owner.sync();
+};
+
 SQL.TableManager.prototype.press = function (e) {
     var target = OZ.Event.target(e).nodeName.toLowerCase();
     if (target == "textarea" || target == "input") {
@@ -262,6 +409,34 @@ SQL.TableManager.prototype.press = function (e) {
     if (this.owner.rowManager.selected) {
         return;
     } /* do not process keypresses if a row is selected */
+
+    var ctrlKey = e.ctrlKey || e.metaKey;
+    
+    // Handle copy (Ctrl+C or Cmd+C)
+    if (ctrlKey && e.keyCode == 67) {
+        if (this.selection.length == 1) {
+            this.copy();
+            OZ.Event.prevent(e);
+        }
+        return;
+    }
+    
+    // Handle paste (Ctrl+V or Cmd+V)
+    if (ctrlKey && e.keyCode == 86) {
+        if (this.clipboard && this.clipboard.type == "table") {
+            this.paste();
+            OZ.Event.prevent(e);
+            return;
+        }
+        // Also check if row manager has a row in clipboard and a table is selected
+        if (this.owner.rowManager.clipboard && 
+            this.owner.rowManager.clipboard.type == "row" && 
+            this.selection.length == 1) {
+            this.owner.rowManager.paste();
+            OZ.Event.prevent(e);
+            return;
+        }
+    }
 
     if (!this.selection.length) {
         return;

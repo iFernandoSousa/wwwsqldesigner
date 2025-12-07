@@ -50,23 +50,14 @@ SQL.Rubberband.prototype.up = function (e) {
     OZ.Event.remove(this.documentMove);
     OZ.Event.remove(this.documentUp);
     
-    // If we're in adding mode and this was a simple click (no drag), create a table
+    // If we're in adding mode and this was a simple click (no drag), show dialog
     if (this.owner.tableManager.adding && this.width < 5 && this.height < 5) {
-        var scroll = OZ.DOM.scroll();
-        var x = this.x0;
-        var y = this.y0;
-        var newtable = this.owner.addTable(_("newtable"), x, y);
-        var r = newtable.addRow("id", { ai: true });
-        var k = newtable.addKey("PRIMARY", "");
-        k.addRow(r);
-        this.owner.tableManager.adding = false;
-        OZ.DOM.removeClass("area", "adding");
-        this.owner.tableManager.dom.addtable.value = this.owner.tableManager.oldvalue;
-        this.owner.tableManager.select(newtable);
-        this.owner.rowManager.select(false);
-        if (this.owner.tableManager.selection.length == 1) {
-            this.owner.tableManager.edit(e);
-        }
+        // Store position and show dialog (don't create table yet)
+        this.owner.tableManager.pendingTablePosition = {
+            x: this.x0,
+            y: this.y0
+        };
+        this.owner.tableManager.showAddTableDialog();
     } else {
         this.owner.tableManager.selectRect(this.x, this.y, this.width, this.height);
     }

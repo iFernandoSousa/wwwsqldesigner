@@ -5,6 +5,7 @@ SQL.RowManager = function (owner) {
     this.selected = null;
     this.creating = false;
     this.connecting = false;
+    this.clipboard = null; // stores copied row data
 
     var ids = [
         "editrow",
@@ -214,6 +215,24 @@ SQL.RowManager.prototype.press = function (e) {
         return;
     } /* not when in form field */
 
+    var ctrlKey = e.ctrlKey || e.metaKey;
+    
+    // Handle copy (Ctrl+C or Cmd+C)
+    if (ctrlKey && e.keyCode == 67) {
+        this.copy();
+        OZ.Event.prevent(e);
+        return;
+    }
+    
+    // Handle paste (Ctrl+V or Cmd+V)
+    if (ctrlKey && e.keyCode == 86) {
+        if (this.clipboard && this.clipboard.type == "row") {
+            this.paste();
+            OZ.Event.prevent(e);
+            return;
+        }
+    }
+
     switch (e.keyCode) {
         case 38:
             this.up();
@@ -232,6 +251,72 @@ SQL.RowManager.prototype.press = function (e) {
             this.selected.collapse();
             break;
     }
+};
+
+SQL.RowManager.prototype.copy = function () {
+    /* copy selected row to clipboard */
+    if (!this.selected) {
+        return;
+    }
+    var row = this.selected;
+    // Store row data
+    this.clipboard = {
+        type: "row",
+        data: {
+            title: row.getTitle(),
+            type: row.data.type,
+            size: row.data.size,
+            def: row.data.def,
+            nll: row.data.nll,
+            ai: row.data.ai,
+            comment: row.data.comment
+        },
+        originalName: row.getTitle()
+    };
+};
+
+SQL.RowManager.prototype.paste = function () {
+    /* paste row from clipboard */
+    if (!this.clipboard || this.clipboard.type != "row") {
+        return;
+    }
+    
+    // Determine target table: use selected row's table, or selected table from tableManager
+    var table = null;
+    if (this.selected) {
+        table = this.selected.owner;
+    } else if (this.owner.tableManager.selection.length == 1) {
+        table = this.owner.tableManager.selection[0];
+    }
+    
+    if (!table) {
+        return;
+    }
+    
+    var originalName = this.clipboard.originalName;
+    var newName = originalName + "_copy";
+    
+    // Ensure unique name within the table
+    var nameCounter = 1;
+    while (table.rows.some(function(r) { return r.getTitle() == newName; })) {
+        newName = originalName + "_copy" + (nameCounter > 1 ? nameCounter : "");
+        nameCounter++;
+    }
+    
+    // Create new row with copied data
+    var rowData = this.clipboard.data;
+    var newRow = table.addRow(newName, {
+        type: rowData.type,
+        size: rowData.size,
+        def: rowData.def,
+        nll: rowData.nll,
+        ai: rowData.ai,
+        comment: rowData.comment
+    });
+    
+    // Select the new row
+    this.select(newRow);
+    newRow.expand();
 };
 
 SQL.RowManager.prototype.edit = function (e) {
