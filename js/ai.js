@@ -86,6 +86,49 @@ SQL.AI.prototype.build = function() {
         border-radius: 6px;
         font-family: inherit;
         font-size: 14px;
+        line-height: 20px;
+        overflow-y: auto;
+    }
+    #ai-mirror {
+        position: absolute;
+        visibility: hidden;
+        pointer-events: none;
+        background: transparent;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 20px;
+        border: 1px solid transparent;
+        top: 45px; /* Adjust based on h3 height + padding */
+        left: 0;
+    }
+    #ai-suggestions {
+        display: none;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 1002;
+        max-height: 150px;
+        overflow-y: auto;
+        width: 200px;
+    }
+    #ai-suggestions.visible {
+        display: block;
+    }
+    .ai-suggestion-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+    }
+    .ai-suggestion-item:hover, .ai-suggestion-item.selected {
+        background-color: #f0f0f0;
     }
     #ai-dialog h3 {
         margin: 0 0 10px 0;
@@ -149,22 +192,59 @@ SQL.AI.prototype.build = function() {
     // Dialog
     this.dom.dialog = document.createElement('div');
     this.dom.dialog.id = 'ai-dialog';
-    this.dom.dialog.innerHTML = `
-        <h3>AI Assistant</h3>
-        <textarea id="ai-prompt" placeholder="Describe the tables you want to create (e.g., 'Create a table for Users with email and password, and a generic Orders table linked to Users')."></textarea>
-        <div class="ai-actions">
-            <button id="ai-cancel">Cancel</button>
-            <button id="ai-submit">Generate</button>
-        </div>
-        <div id="ai-status"></div>
-    `;
-    document.body.appendChild(this.dom.dialog);
+    
+    var h3 = document.createElement('h3');
+    h3.innerText = 'AI Assistant';
+    
+    var prompt = document.createElement('textarea');
+    prompt.id = 'ai-prompt';
+    prompt.placeholder = 'Describe the tables you want to create... Use @ to reference existing tables.';
+    
+    var mirror = document.createElement('div');
+    mirror.id = 'ai-mirror';
 
-    // Events
+    var suggestions = document.createElement('div');
+    suggestions.id = 'ai-suggestions';
+    
+    var status = document.createElement('div');
+    status.id = 'ai-status';
+
+    var actions = document.createElement('div');
+    actions.className = 'ai-actions';
+
+    var btnCancel = document.createElement('button');
+    btnCancel.id = 'ai-cancel';
+    btnCancel.innerText = 'Cancel';
+    
+    var btnSubmit = document.createElement('button');
+    btnSubmit.id = 'ai-submit';
+    btnSubmit.innerText = 'Generate';
+    
+    actions.appendChild(btnCancel);
+    actions.appendChild(btnSubmit);
+    
+    this.dom.dialog.appendChild(h3);
+    this.dom.dialog.appendChild(prompt);
+    this.dom.dialog.appendChild(mirror);
+    this.dom.dialog.appendChild(suggestions);
+    this.dom.dialog.appendChild(status);
+    this.dom.dialog.appendChild(actions);
+    
+    document.body.appendChild(this.dom.dialog);
+    
+    this.dom.prompt = prompt;
+    this.dom.mirror = mirror;
+    this.dom.suggestions = suggestions;
+    
+    var self = this;
     OZ.Event.add(this.dom.btn, "click", this.toggle.bind(this));
     OZ.Event.add(this.dom.overlay, "click", this.toggle.bind(this));
-    OZ.Event.add(document.getElementById('ai-cancel'), "click", this.toggle.bind(this));
-    OZ.Event.add(document.getElementById('ai-submit'), "click", this.submit.bind(this));
+    OZ.Event.add(btnCancel, "click", this.toggle.bind(this));
+    OZ.Event.add(btnSubmit, "click", this.submit.bind(this));
+    
+    // Autocomplete events
+    OZ.Event.add(prompt, "input", this.handleInput.bind(this));
+    OZ.Event.add(prompt, "keydown", this.handleKeydown.bind(this));
 }
 
 SQL.AI.prototype.toggle = function() {
@@ -173,16 +253,174 @@ SQL.AI.prototype.toggle = function() {
         this.dom.dialog.classList.remove('visible');
         this.dom.overlay.classList.remove('visible');
         this.dom.btn.classList.remove('hidden');
+        this.dom.suggestions.classList.remove('visible');
     } else {
         this.dom.dialog.classList.add('visible');
         this.dom.overlay.classList.add('visible');
         this.dom.btn.classList.add('hidden');
-        document.getElementById('ai-prompt').focus();
+        this.dom.prompt.focus();
     }
 }
 
+SQL.AI.prototype.handleInput = function(e) {
+    var text = this.dom.prompt.value;
+    var cursor = this.dom.prompt.selectionStart;
+    var lastAt = text.lastIndexOf('@', cursor - 1);
+    
+    if (lastAt !== -1) {
+        var query = text.substring(lastAt + 1, cursor);
+        // Check if there's a space, which means we stopped typing the name
+        if (query.indexOf(' ') === -1) {
+            this.showSuggestions(query, lastAt);
+            return;
+        }
+    }
+    this.hideSuggestions();
+}
+
+SQL.AI.prototype.handleKeydown = function(e) {
+    if (!this.dom.suggestions.classList.contains('visible')) {
+        this.handlePromptKeydown(e);
+        return;
+    }
+    
+    var items = this.dom.suggestions.children;
+    var selectedIndex = -1;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].classList.contains('selected')) {
+            selectedIndex = i;
+            break;
+        }
+    }
+    
+    if (e.keyCode === 40) { // Down
+        e.preventDefault();
+        var nextIndex = (selectedIndex + 1) % items.length;
+        this.selectSuggestion(nextIndex);
+    } else if (e.keyCode === 38) { // Up
+        e.preventDefault();
+        var prevIndex = (selectedIndex - 1 + items.length) % items.length;
+        this.selectSuggestion(prevIndex);
+    } else if (e.keyCode === 13 || e.keyCode === 9) { // Enter or Tab
+        if (selectedIndex !== -1) {
+            e.preventDefault();
+            items[selectedIndex].click();
+        } else if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
+             // Submit on Ctrl+Enter / Cmd+Enter
+             this.submit();
+        }
+    } else if (e.keyCode === 27) { // Escape
+        this.hideSuggestions();
+        if (!this.dom.suggestions.classList.contains('visible')) {
+             // If suggestions were already hidden (or we just hid them), close dialog? 
+             // Actually if they were visible, we just hid them. 
+             // Logic: If visible -> hide. If hidden -> close dialog.
+             // But here we are inside "if visible" block (check top of function)
+             // So this block ONLY runs if suggestions are visible.
+        }
+    }
+}
+
+// Global Keydown for prompt (when suggestions NOT visible)
+SQL.AI.prototype.handlePromptKeydown = function(e) {
+    if (this.dom.suggestions.classList.contains('visible')) return; // handled by handleKeydown
+
+    if (e.keyCode === 27) { // Escape
+        this.toggle();
+    } else if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) { // Ctrl+Enter / Cmd+Enter
+        this.submit();
+    }
+}
+
+SQL.AI.prototype.showSuggestions = function(query, atIndex) {
+    var tables = this.owner.tables;
+    var matches = tables.filter(function(t) {
+        return t.getTitle().toLowerCase().indexOf(query.toLowerCase()) !== -1;
+    });
+    
+    if (matches.length === 0) {
+        this.hideSuggestions();
+        return;
+    }
+    
+    this.dom.suggestions.innerHTML = '';
+    var self = this;
+    
+    matches.forEach(function(t, index) {
+        var div = document.createElement('div');
+        div.className = 'ai-suggestion-item' + (index === 0 ? ' selected' : '');
+        div.innerText = t.getTitle();
+        div.onclick = function() {
+            var text = self.dom.prompt.value;
+            var before = text.substring(0, atIndex);
+            var after = text.substring(self.dom.prompt.selectionStart);
+            self.dom.prompt.value = before + '@' + t.getTitle() + ' ' + after;
+            self.dom.prompt.focus();
+            // Set cursor after the inserted text
+            var newCursorPos = (before + '@' + t.getTitle() + ' ').length;
+            self.dom.prompt.setSelectionRange(newCursorPos, newCursorPos);
+            self.hideSuggestions();
+        };
+        self.dom.suggestions.appendChild(div);
+    });
+    
+    // Position suggestions
+    var text = this.dom.prompt.value.substring(0, this.dom.prompt.selectionStart);
+    this.dom.mirror.textContent = text;
+    var span = document.createElement('span');
+    span.textContent = '.';
+    this.dom.mirror.appendChild(span);
+    
+    // Calculate position
+    // We need offset relative to the prompt box
+    var promptRect = this.dom.prompt.getBoundingClientRect();
+    var dialogRect = this.dom.dialog.getBoundingClientRect();
+    
+    // Offset of the span within the mirror
+    // Mirror is positioned at the same place as prompt inside dialog?
+    // We set mirror top: 45px. Prompt is likely similar. 
+    // Actually we should align mirror exactly with prompt.
+    // Let's rely on offsetLeft/Top of span relative to mirror.
+    
+    var mirrorRect = this.dom.mirror.getBoundingClientRect();
+    var spanRect = span.getBoundingClientRect();
+    
+    var relativeTop = spanRect.top - mirrorRect.top;
+    var relativeLeft = spanRect.left - mirrorRect.left;
+    
+    // Adjust for scroll
+    relativeTop -= this.dom.prompt.scrollTop;
+    
+    // Final coordinates relative to Dialog
+    // Prompt top relative to dialog:
+    var promptTop = promptRect.top - dialogRect.top;
+    var promptLeft = promptRect.left - dialogRect.left;
+    
+    var top = promptTop + relativeTop + 20; // + line-height
+    var left = promptLeft + relativeLeft;
+
+    this.dom.suggestions.style.top = top + 'px';
+    this.dom.suggestions.style.left = left + 'px';
+    this.dom.suggestions.classList.add('visible');
+}
+
+SQL.AI.prototype.selectSuggestion = function(index) {
+    var items = this.dom.suggestions.children;
+    for (var i = 0; i < items.length; i++) {
+        items[i].classList.remove('selected');
+    }
+    if (index >= 0 && index < items.length) {
+        items[index].classList.add('selected');
+        items[index].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+SQL.AI.prototype.hideSuggestions = function() {
+    this.dom.suggestions.classList.remove('visible');
+}
+
 SQL.AI.prototype.submit = function() {
-    var prompt = document.getElementById('ai-prompt').value;
+    var prompt = this.dom.prompt.value;
     if (!prompt.trim()) return;
 
     var provider = this.owner.getOption("ai_provider");
@@ -218,6 +456,8 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
             datatypes.push(types[i].getAttribute("label"));
         }
     }
+
+    var compressedSchema = this.getCompressedSchema();
     
     // Model Selection - Use agent directly or fallback
     var model = agent || "gemini-1.5-flash"; 
@@ -229,10 +469,13 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
     var url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${key}`;
 
     var systemPrompt = `You are an expert SQL database designer using wwwsqldesigner.
-    The user wants to add tables to a database diagram.
+    The user wants to modify the database schema (create tables, add columns/relations).
     
     Context:
     - Existing Datatypes (use these): ${datatypes.join(", ")}.
+    - Current Database Schema (Compressed):
+    ${compressedSchema}
+    
     - Output must be valid XML for wwwsqldesigner.
     
     XML Structure for a table:
@@ -265,9 +508,11 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
     
     Instructions:
     1. Parse the User Request.
-    2. Create schemas for requested tables.
-    3. Position them intelligently (avoid 0,0 if possible, spread them out e.g. x="100", x="300").
-    4. Return ONLY the XML string. Do NOT use markdown code blocks.
+    2. Analyze the 'Current Database Schema' to understand existing tables and columns.
+    3. If modifying an existing table (e.g. adding a column to @Users), return a <table> block with the EXACT name, containing ONLY the NEW <row> elements. Do NOT repeat existing columns.
+    4. If creating a new table, return the full schema.
+    5. Position new tables intelligently.
+    6. Return ONLY the XML string. Do NOT use markdown code blocks.
     
     User Request: ${userPrompt}`;
 
@@ -278,7 +523,7 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
             }]
         }]
     };
-
+    
     var self = this;
     fetch(url, {
         method: 'POST',
@@ -318,12 +563,112 @@ SQL.AI.prototype.handleResponse = function(xmlText) {
             throw new Error("Invalid XML returned by AI");
         }
         
-        this.owner.updateFromXML(xmlDoc.documentElement);
+        this.updateSchema(xmlDoc.documentElement);
         this.toggle(); // Close dialog
         this.setStatus("");
-        document.getElementById('ai-prompt').value = "";
+        this.dom.prompt.value = "";
     } catch (e) {
         alert("Error parsing AI response: " + e.message);
         this.setStatus("Parsing Error");
     }
+}
+
+SQL.AI.prototype.updateSchema = function(xmlRoot) {
+    var tables = xmlRoot.getElementsByTagName("table");
+    for (var i = 0; i < tables.length; i++) {
+        var tableNode = tables[i];
+        var name = tableNode.getAttribute("name");
+        var x = parseInt(tableNode.getAttribute("x")) || 0;
+        var y = parseInt(tableNode.getAttribute("y")) || 0;
+        
+        var table = this.owner.findNamedTable(name);
+        if (!table) {
+            table = this.owner.addTable(name, x, y);
+        } else {
+            // Preserve existing position for existing tables
+            // The AI context doesn't include coordinates, so it can't preserve them.
+            // We must force the current coordinates back into the XML node before processing.
+            tableNode.setAttribute("x", table.x);
+            tableNode.setAttribute("y", table.y);
+        }
+        
+        // Append new rows/keys from the node
+        table.fromXML(tableNode);
+    }
+    
+    // Process relations (copied logic from updateFromXML to ensure relations are linked)
+    var rs = xmlRoot.getElementsByTagName("relation");
+    for (var i = 0; i < rs.length; i++) {
+        var rel = rs[i];
+        var tname = rel.getAttribute("table");
+        var rname = rel.getAttribute("row");
+
+        var t1 = this.owner.findNamedTable(tname);
+        if (!t1) continue;
+        
+        var r1 = t1.findNamedRow(rname);
+        if (!r1) continue;
+
+        var sourceTName = rel.parentNode.parentNode.getAttribute("name");
+        var sourceRName = rel.parentNode.getAttribute("name");
+        var t2 = this.owner.findNamedTable(sourceTName);
+        if (!t2) continue;
+        
+        var r2 = t2.findNamedRow(sourceRName);
+        if (!r2) continue;
+
+        this.owner.addRelation(r1, r2);
+    }
+    
+    this.owner.sync();
+}
+
+SQL.AI.prototype.getCompressedSchema = function() {
+    var schema = "";
+    var tables = this.owner.tables;
+    
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i];
+        schema += "Table: " + table.getTitle() + "\n";
+        
+        for (var j = 0; j < table.rows.length; j++) {
+            var row = table.rows[j];
+            var typeStr = "";
+            
+            // Get data type name
+            var typeIndex = row.data.type;
+            if (window.DATATYPES) {
+                var typeEl = window.DATATYPES.getElementsByTagName("type")[typeIndex];
+                if (typeEl) {
+                    typeStr = typeEl.getAttribute("label");
+                    // Add size if applicable
+                    if (row.data.size) {
+                        typeStr += "(" + row.data.size + ")";
+                    }
+                }
+            }
+            
+            // Flags
+            var flags = [];
+            if (row.isPrimary()) flags.push("PK");
+            if (row.data.ai) flags.push("AI");
+            if (!row.data.nll) flags.push("NOT NULL");
+            
+            // Relations
+            for (var k = 0; k < row.relations.length; k++) {
+                var rel = row.relations[k];
+                if (rel.row1 === row) { // If this row is the source of the relation (FK)
+                    flags.push("FK -> " + rel.row2.owner.getTitle() + "." + rel.row2.getTitle());
+                }
+            }
+            
+            schema += "  " + row.getTitle() + ": " + typeStr;
+            if (flags.length > 0) {
+                schema += " (" + flags.join(", ") + ")";
+            }
+            schema += "\n";
+        }
+        schema += "\n";
+    }
+    return schema;
 }
