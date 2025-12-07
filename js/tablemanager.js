@@ -141,6 +141,25 @@ SQL.TableManager.prototype.selectRect = function (x, y, width, height) {
 
 SQL.TableManager.prototype.click = function (e) {
     /* finish adding new table */
+    var target = OZ.Event.target(e);
+    var area = OZ.$("area");
+    
+    // Only process if clicking directly on area or its direct children (like SVG)
+    // Skip if clicking on a table or other interactive element
+    var clickedOnTable = false;
+    while (target && target !== area && target !== document.body) {
+        if (target.className && target.className.indexOf && target.className.indexOf("table") !== -1) {
+            clickedOnTable = true;
+            break;
+        }
+        target = target.parentNode;
+    }
+    
+    // If we clicked on a table, let the table handle it
+    if (clickedOnTable && !this.adding) {
+        return;
+    }
+    
     var newtable = false;
     if (this.adding) {
         this.adding = false;

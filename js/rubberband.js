@@ -49,7 +49,27 @@ SQL.Rubberband.prototype.up = function (e) {
     this.dom.container.style.visibility = "hidden";
     OZ.Event.remove(this.documentMove);
     OZ.Event.remove(this.documentUp);
-    this.owner.tableManager.selectRect(this.x, this.y, this.width, this.height);
+    
+    // If we're in adding mode and this was a simple click (no drag), create a table
+    if (this.owner.tableManager.adding && this.width < 5 && this.height < 5) {
+        var scroll = OZ.DOM.scroll();
+        var x = this.x0;
+        var y = this.y0;
+        var newtable = this.owner.addTable(_("newtable"), x, y);
+        var r = newtable.addRow("id", { ai: true });
+        var k = newtable.addKey("PRIMARY", "");
+        k.addRow(r);
+        this.owner.tableManager.adding = false;
+        OZ.DOM.removeClass("area", "adding");
+        this.owner.tableManager.dom.addtable.value = this.owner.tableManager.oldvalue;
+        this.owner.tableManager.select(newtable);
+        this.owner.rowManager.select(false);
+        if (this.owner.tableManager.selection.length == 1) {
+            this.owner.tableManager.edit(e);
+        }
+    } else {
+        this.owner.tableManager.selectRect(this.x, this.y, this.width, this.height);
+    }
 };
 
 SQL.Rubberband.prototype.redraw = function () {
