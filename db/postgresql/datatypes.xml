@@ -39,5 +39,6 @@
 		<type label="Geometry" length="0" sql="GEOMETRY" quote="'" />
         <type label="JSON" length="0" sql="JSON" quote="'" />
         <type label="JSONB" length="0" sql="JSONB" quote="'" />
+        <type label="UUID" length="0" sql="UUID" quote="'" />
 	</group>
 </datatypes>

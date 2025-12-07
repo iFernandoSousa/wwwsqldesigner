@@ -11,7 +11,7 @@ var CONFIG = {
         "cubrid",
         "web2py",
     ],
-    DEFAULT_DB: "mysql",
+    DEFAULT_DB: "postgresql",
 
     AVAILABLE_LOCALES: [
         "ar",
