@@ -38,6 +38,7 @@
     <script src="js/keymanager.js"></script>
     <script src="js/window.js"></script>
     <script src="js/options.js"></script>
+    <script src="js/ai.js"></script>
     <script src="js/wwwsqldesigner.js"></script>
 </head>
 
@@ -161,6 +162,32 @@
                     <td>* <label id="showtype" for="optionshowtype"></label></td>
                     <td>
                         <input type="checkbox" id="optionshowtype" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr/></td>
+                </tr>
+                <tr>
+                    <td><label id="aiprovider" for="optionaiprovider">AI Provider</label></td>
+                    <td>
+                        <select id="optionaiprovider">
+                            <option></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label id="aiapikey" for="optionaiapikey">API Key</label></td>
+                    <td>
+                        <input type="password" id="optionaiapikey" style="width: 100%;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label id="aiagent" for="optionaiagent">AI Model</label></td>
+                    <td>
+                        <select id="optionaiagent">
+                            <option></option>
+                        </select>
+                        <input type="button" id="btnlistmodels" value="List Models" style="margin-left: 5px; font-size: 0.8em;" />
                     </td>
                 </tr>
             </tbody>

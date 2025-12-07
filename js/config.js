@@ -96,4 +96,18 @@ var CONFIG = {
      * Copy the shown "App key" and paste it here below instead of the null value:
      */
     DROPBOX_KEY: null, // such as: "d6stdscwewhl6sa"
+
+    AVAILABLE_AI_PROVIDERS: [
+        "Google Gemini",
+        "OpenAI",
+        "Grok"
+    ],
+    DEFAULT_AI_PROVIDER: "Google Gemini",
+
+    // Default models if API list fails
+    AI_MODELS: {
+        "Google Gemini": ["gemini-1.5-flash", "gemini-1.5-pro"],
+        "OpenAI": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
+        "Grok": ["grok-2", "grok-beta"]
+    }
 };

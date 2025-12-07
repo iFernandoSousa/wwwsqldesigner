@@ -125,6 +125,7 @@ SQL.Designer.prototype.init2 = function () {
     this.io = new SQL.IO(this);
     this.options = new SQL.Options(this);
     this.window = new SQL.Window(this);
+    this.ai = new SQL.AI(this);
 
     this.sync();
 
@@ -352,6 +353,52 @@ SQL.Designer.prototype.fromXML = function (node) {
     if (types.length) {
         window.DATATYPES = types[0];
     }
+    var tables = node.getElementsByTagName("table");
+    for (var i = 0; i < tables.length; i++) {
+        var t = this.addTable("", 0, 0);
+        t.fromXML(tables[i]);
+    }
+
+    for (var i = 0; i < this.tables.length; i++) {
+        /* ff one-pixel shift hack */
+        this.tables[i].select();
+        this.tables[i].deselect();
+    }
+
+    /* relations */
+    var rs = node.getElementsByTagName("relation");
+    for (var i = 0; i < rs.length; i++) {
+        var rel = rs[i];
+        var tname = rel.getAttribute("table");
+        var rname = rel.getAttribute("row");
+
+        var t1 = this.findNamedTable(tname);
+        if (!t1) {
+            continue;
+        }
+        var r1 = t1.findNamedRow(rname);
+        if (!r1) {
+            continue;
+        }
+
+        tname = rel.parentNode.parentNode.getAttribute("name");
+        rname = rel.parentNode.getAttribute("name");
+        var t2 = this.findNamedTable(tname);
+        if (!t2) {
+            continue;
+        }
+        var r2 = t2.findNamedRow(rname);
+        if (!r2) {
+            continue;
+        }
+
+        this.addRelation(r1, r2);
+    }
+
+    this.sync();
+};
+
+SQL.Designer.prototype.updateFromXML = function (node) {
     var tables = node.getElementsByTagName("table");
     for (var i = 0; i < tables.length; i++) {
         var t = this.addTable("", 0, 0);
