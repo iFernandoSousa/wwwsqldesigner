@@ -55,6 +55,9 @@
     <string name="hide">Elrejtsem a kapcsolókat a rajztáblán?</string>
     <string name="vector">Kapcsolók finom kirajzolása (ha a böngésző lehetővé teszi)?</string>
     <string name="style">Stílus</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
 
     <!-- keys -->

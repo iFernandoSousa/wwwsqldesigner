@@ -57,6 +57,9 @@
     <string name="showsize">Toon veld omvang in tabelontwerp?</string>
     <string name="showtype">Toon veld type in tabelontwerp?</string>
     <string name="style">Stijl</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">Sleutels</string>

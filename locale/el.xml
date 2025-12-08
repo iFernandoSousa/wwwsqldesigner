@@ -55,6 +55,9 @@
     <string name="hide">Απόκρυψη συνδέσμων όταν σύρονται οι πίνακες;</string>
     <string name="vector">Διάγραμμα με ομαλούς συνδέσμους(αν παρέχεται από τον περιηγητή);</string>
     <string name="style">Στυλ</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
 
     <!-- keys -->

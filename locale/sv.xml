@@ -55,6 +55,9 @@
     <string name="hide">Dölj anslutningar när du drar i tabellen?</string>
     <string name="vector">Rita mjuka anslutningar (om din webbläsare stöder det)?</string>
     <string name="style">Stil</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">Nycklar</string>

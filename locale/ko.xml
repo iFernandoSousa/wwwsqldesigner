@@ -57,6 +57,9 @@
     <string name="showsize">디자인에서 필드 사이즈를 표시</string>
     <string name="showtype">디자인에서 필드 타입을 표시</string>
     <string name="style">스타일</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">키 설정</string>

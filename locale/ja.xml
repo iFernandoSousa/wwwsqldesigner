@@ -56,6 +56,9 @@
     <string name="showsize">フィールドサイズを表示</string>
     <string name="showtype">フィールドタイプを表示</string>
     <string name="style">スタイル</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">キーの設定</string>

@@ -57,6 +57,9 @@
     <string name="showsize">Afficher la taille du champ dans le schéma de table ?</string>
     <string name="showtype">Afficher le type du champ dans le schéma de table ?</string>
     <string name="style">Style</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">Clés</string>

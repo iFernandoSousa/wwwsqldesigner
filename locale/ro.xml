@@ -55,6 +55,9 @@
     <string name="hide">Ascunde conexiunile la mutarea tabelei?</string>
     <string name="vector">Deseneaza folosind "smooth connectors" (daca browserul suporta)?</string>
     <string name="style">Stil</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
 
     <!-- keys -->

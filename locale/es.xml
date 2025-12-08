@@ -57,6 +57,9 @@
     <string name="showsize">¿Mostrar tamaño del campo en el diseño de tabla?</string>
     <string name="showtype">¿Mostrar tipo de dato del campo en el diseño de tabla?</string>
     <string name="style">Estilo</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
     <!-- keys -->
     <string name="tablekeys">Claves</string>

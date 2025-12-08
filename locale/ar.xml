@@ -54,6 +54,9 @@
     <string name="hide">إخفاء الخطوط عند تحريك الجدول؟</string>
     <string name="vector">رسم خطوط ناعمة (إذا كان المتصفح يدعم ذلك) ؟</string>
     <string name="style">قلم المدقة</string>
+    <string name="aiprovider">AI Provider</string>
+    <string name="aiapikey">API Key</string>
+    <string name="aiagent">AI Model</string>
 
 
     <!-- keys -->
