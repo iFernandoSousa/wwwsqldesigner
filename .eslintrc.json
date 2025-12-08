@@ -3,25 +3,29 @@
     "browser": true,
     "es2021": true
   },
-  "extends": ["eslint:recommended"],
+  "extends": ["eslint:recommended", "prettier"],
   "parserOptions": {
     "ecmaVersion": 2021,
     "sourceType": "script"
   },
   "rules": {
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "double"],
-    "semi": ["error", "always"],
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "no-console": "off",
     "no-var": "off",
-    "prefer-const": "warn"
+    "prefer-const": "warn",
+    "no-redeclare": "off",
+    "no-empty": "warn",
+    "no-constant-condition": "warn",
+    "no-undef": "error"
   },
   "globals": {
     "SQL": "readonly",
     "OZ": "readonly",
-    "Dropbox": "readonly"
+    "Dropbox": "readonly",
+    "_": "readonly",
+    "CONFIG": "readonly",
+    "DATATYPES": "readonly",
+    "LOCALE": "readonly",
+    "ActiveXObject": "readonly"
   }
 }
-

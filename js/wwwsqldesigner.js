@@ -1,949 +1,964 @@
 SQL.Designer = function () {
-    SQL.Designer = this;
+  SQL.Designer = this;
 
-    this.xhrheaders = {};
-    this.tables = [];
-    this.relations = [];
-    this.title = document.title;
+  this.xhrheaders = {};
+  this.tables = [];
+  this.relations = [];
+  this.title = document.title;
 
-    SQL.Visual.apply(this);
-    new SQL.Toggle(OZ.$("toggle"));
+  SQL.Visual.apply(this);
+  new SQL.Toggle(OZ.$("toggle"));
 
-    this.dom.container = OZ.$("area");
-    
-    // Set default size to 100% of viewport dimensions
-    var viewport = OZ.DOM.win();
-    var defaultWidth = Math.floor(viewport[0] * 1.0);
-    var defaultHeight = Math.floor(viewport[1] * 1.0);
-    
-    this.minSize = [defaultWidth, defaultHeight];
-    this.width = this.minSize[0];
-    this.height = this.minSize[1];
-    
-    // Update DOM container size immediately
-    this.dom.container.style.width = this.width + "px";
-    this.dom.container.style.height = this.height + "px";
+  this.dom.container = OZ.$("area");
 
-    this.typeIndex = false;
-    this.fkTypeFor = false;
+  // Set default size to 100% of viewport dimensions
+  var viewport = OZ.DOM.win();
+  var defaultWidth = Math.floor(viewport[0] * 1.0);
+  var defaultHeight = Math.floor(viewport[1] * 1.0);
 
-    this.vector = this.getOption("vector") && document.createElementNS;
-    if (this.vector) {
-        this.svgNS = "http://www.w3.org/2000/svg";
-        this.dom.svg = document.createElementNS(this.svgNS, "svg");
-        this.dom.container.appendChild(this.dom.svg);
-    }
+  this.minSize = [defaultWidth, defaultHeight];
+  this.width = this.minSize[0];
+  this.height = this.minSize[1];
 
-    this.flag = 2;
-    this.isModified = false;
-    this.requestLanguage();
-    this.requestDB();
-    this.applyStyle();
+  // Update DOM container size immediately
+  this.dom.container.style.width = this.width + "px";
+  this.dom.container.style.height = this.height + "px";
+
+  this.typeIndex = false;
+  this.fkTypeFor = false;
+
+  this.vector = this.getOption("vector") && document.createElementNS;
+  if (this.vector) {
+    this.svgNS = "http://www.w3.org/2000/svg";
+    this.dom.svg = document.createElementNS(this.svgNS, "svg");
+    this.dom.container.appendChild(this.dom.svg);
+  }
+
+  this.flag = 2;
+  this.isModified = false;
+  this.requestLanguage();
+  this.requestDB();
+  this.applyStyle();
 };
 SQL.Designer.prototype = Object.create(SQL.Visual.prototype);
 
-SQL.Designer.prototype.flagModified = function() {
-    this.isModified = true;
-    if (this.io) {
-        this.io.checkAutoSave();
-    }
+SQL.Designer.prototype.flagModified = function () {
+  this.isModified = true;
+  if (this.io) {
+    this.io.checkAutoSave();
+  }
 };
 
-SQL.Designer.prototype.resetModified = function() {
-    this.isModified = false;
+SQL.Designer.prototype.resetModified = function () {
+  this.isModified = false;
 };
 
 /* update area size */
 SQL.Designer.prototype.sync = function () {
-    var w = this.minSize[0];
-    var h = this.minSize[1];
+  var w = this.minSize[0];
+  var h = this.minSize[1];
+  for (var i = 0; i < this.tables.length; i++) {
+    var t = this.tables[i];
+    w = Math.max(w, t.x + t.width);
+    h = Math.max(h, t.y + t.height);
+  }
+
+  // Edge detection constants
+  var EDGE_THRESHOLD = 200; // pixels from edge to trigger expansion
+  var EXPANSION_AMOUNT = 500; // pixels to expand when triggered
+
+  // Use current design area size for edge detection (or calculated minimum if larger)
+  var currentWidth = Math.max(this.width || w, w);
+  var currentHeight = Math.max(this.height || h, h);
+
+  // Check if any table is near the edges and expand accordingly
+  var needsRightExpansion = false;
+  var needsBottomExpansion = false;
+  var needsLeftExpansion = false;
+  var needsTopExpansion = false;
+
+  for (var i = 0; i < this.tables.length; i++) {
+    var t = this.tables[i];
+
+    // Check right edge - table is within threshold of right edge
+    if (t.x + t.width >= currentWidth - EDGE_THRESHOLD) {
+      needsRightExpansion = true;
+    }
+
+    // Check bottom edge - table is within threshold of bottom edge
+    if (t.y + t.height >= currentHeight - EDGE_THRESHOLD) {
+      needsBottomExpansion = true;
+    }
+
+    // Check left edge - table is within threshold of left edge
+    if (t.x <= EDGE_THRESHOLD) {
+      needsLeftExpansion = true;
+    }
+
+    // Check top edge - table is within threshold of top edge
+    if (t.y <= EDGE_THRESHOLD) {
+      needsTopExpansion = true;
+    }
+  }
+
+  // Apply expansions
+  if (needsRightExpansion) {
+    w += EXPANSION_AMOUNT;
+  }
+  if (needsBottomExpansion) {
+    h += EXPANSION_AMOUNT;
+  }
+  if (needsLeftExpansion) {
+    // Expand from origin - just increase width, keeping origin at 0,0
+    w += EXPANSION_AMOUNT;
+  }
+  if (needsTopExpansion) {
+    // Expand from origin - just increase height, keeping origin at 0,0
+    h += EXPANSION_AMOUNT;
+  }
+
+  // Auto-shrink logic: shrink when tables are far from edges
+  var SHRINK_AMOUNT = 500; // pixels to shrink when triggered
+
+  // Calculate absolute minimum size (larger of table positions or original minSize)
+  // This is the smallest we can shrink to - never below table positions or original size
+  var absoluteMinWidth = Math.max(w, this.minSize[0]);
+  var absoluteMinHeight = Math.max(h, this.minSize[1]);
+
+  // Use expanded size (w, h) for shrink detection after expansion
+  var expandedWidth = w;
+  var expandedHeight = h;
+
+  // Check if all tables are far from edges (for shrinking)
+  // Check against the expanded size to see if we can shrink
+  var allTablesFarFromRight = true;
+  var allTablesFarFromBottom = true;
+  var allTablesFarFromLeft = true;
+  var allTablesFarFromTop = true;
+
+  if (this.tables.length > 0) {
     for (var i = 0; i < this.tables.length; i++) {
-        var t = this.tables[i];
-        w = Math.max(w, t.x + t.width);
-        h = Math.max(h, t.y + t.height);
-    }
+      var t = this.tables[i];
 
-    // Edge detection constants
-    var EDGE_THRESHOLD = 200; // pixels from edge to trigger expansion
-    var EXPANSION_AMOUNT = 500; // pixels to expand when triggered
+      // Check if any table is near right edge (using expanded width)
+      if (t.x + t.width >= expandedWidth - EDGE_THRESHOLD) {
+        allTablesFarFromRight = false;
+      }
 
-    // Use current design area size for edge detection (or calculated minimum if larger)
-    var currentWidth = Math.max(this.width || w, w);
-    var currentHeight = Math.max(this.height || h, h);
+      // Check if any table is near bottom edge (using expanded height)
+      if (t.y + t.height >= expandedHeight - EDGE_THRESHOLD) {
+        allTablesFarFromBottom = false;
+      }
 
-    // Check if any table is near the edges and expand accordingly
-    var needsRightExpansion = false;
-    var needsBottomExpansion = false;
-    var needsLeftExpansion = false;
-    var needsTopExpansion = false;
+      // Check if any table is near left edge
+      if (t.x <= EDGE_THRESHOLD) {
+        allTablesFarFromLeft = false;
+      }
 
-    for (var i = 0; i < this.tables.length; i++) {
-        var t = this.tables[i];
-        
-        // Check right edge - table is within threshold of right edge
-        if (t.x + t.width >= currentWidth - EDGE_THRESHOLD) {
-            needsRightExpansion = true;
-        }
-        
-        // Check bottom edge - table is within threshold of bottom edge
-        if (t.y + t.height >= currentHeight - EDGE_THRESHOLD) {
-            needsBottomExpansion = true;
-        }
-        
-        // Check left edge - table is within threshold of left edge
-        if (t.x <= EDGE_THRESHOLD) {
-            needsLeftExpansion = true;
-        }
-        
-        // Check top edge - table is within threshold of top edge
-        if (t.y <= EDGE_THRESHOLD) {
-            needsTopExpansion = true;
-        }
+      // Check if any table is near top edge
+      if (t.y <= EDGE_THRESHOLD) {
+        allTablesFarFromTop = false;
+      }
     }
+  } else {
+    // No tables, shrink back to original size
+    allTablesFarFromRight = true;
+    allTablesFarFromBottom = true;
+    allTablesFarFromLeft = true;
+    allTablesFarFromTop = true;
+  }
 
-    // Apply expansions
-    if (needsRightExpansion) {
-        w += EXPANSION_AMOUNT;
-    }
-    if (needsBottomExpansion) {
-        h += EXPANSION_AMOUNT;
-    }
-    if (needsLeftExpansion) {
-        // Expand from origin - just increase width, keeping origin at 0,0
-        w += EXPANSION_AMOUNT;
-    }
-    if (needsTopExpansion) {
-        // Expand from origin - just increase height, keeping origin at 0,0
-        h += EXPANSION_AMOUNT;
-    }
+  // Apply shrinking (shrink back to absolute minimum when tables are far from edges)
+  if (allTablesFarFromRight && expandedWidth > absoluteMinWidth) {
+    w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+  }
+  if (allTablesFarFromBottom && expandedHeight > absoluteMinHeight) {
+    h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
+  }
+  if (allTablesFarFromLeft && expandedWidth > absoluteMinWidth) {
+    // Shrink from right - reduce width, keeping origin at 0,0
+    w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+  }
+  if (allTablesFarFromTop && expandedHeight > absoluteMinHeight) {
+    // Shrink from bottom - reduce height, keeping origin at 0,0
+    h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
+  }
 
-    // Auto-shrink logic: shrink when tables are far from edges
-    var SHRINK_AMOUNT = 500; // pixels to shrink when triggered
-    
-    // Calculate absolute minimum size (larger of table positions or original minSize)
-    // This is the smallest we can shrink to - never below table positions or original size
-    var absoluteMinWidth = Math.max(w, this.minSize[0]);
-    var absoluteMinHeight = Math.max(h, this.minSize[1]);
-    
-    // Use expanded size (w, h) for shrink detection after expansion
-    var expandedWidth = w;
-    var expandedHeight = h;
-    
-    // Check if all tables are far from edges (for shrinking)
-    // Check against the expanded size to see if we can shrink
-    var allTablesFarFromRight = true;
-    var allTablesFarFromBottom = true;
-    var allTablesFarFromLeft = true;
-    var allTablesFarFromTop = true;
-    
-    if (this.tables.length > 0) {
-        for (var i = 0; i < this.tables.length; i++) {
-            var t = this.tables[i];
-            
-            // Check if any table is near right edge (using expanded width)
-            if (t.x + t.width >= expandedWidth - EDGE_THRESHOLD) {
-                allTablesFarFromRight = false;
-            }
-            
-            // Check if any table is near bottom edge (using expanded height)
-            if (t.y + t.height >= expandedHeight - EDGE_THRESHOLD) {
-                allTablesFarFromBottom = false;
-            }
-            
-            // Check if any table is near left edge
-            if (t.x <= EDGE_THRESHOLD) {
-                allTablesFarFromLeft = false;
-            }
-            
-            // Check if any table is near top edge
-            if (t.y <= EDGE_THRESHOLD) {
-                allTablesFarFromTop = false;
-            }
-        }
-    } else {
-        // No tables, shrink back to original size
-        allTablesFarFromRight = true;
-        allTablesFarFromBottom = true;
-        allTablesFarFromLeft = true;
-        allTablesFarFromTop = true;
-    }
-    
-    // Apply shrinking (shrink back to absolute minimum when tables are far from edges)
-    if (allTablesFarFromRight && expandedWidth > absoluteMinWidth) {
-        w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
-    }
-    if (allTablesFarFromBottom && expandedHeight > absoluteMinHeight) {
-        h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
-    }
-    if (allTablesFarFromLeft && expandedWidth > absoluteMinWidth) {
-        // Shrink from right - reduce width, keeping origin at 0,0
-        w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
-    }
-    if (allTablesFarFromTop && expandedHeight > absoluteMinHeight) {
-        // Shrink from bottom - reduce height, keeping origin at 0,0
-        h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
-    }
+  this.width = w;
+  this.height = h;
 
-    this.width = w;
-    this.height = h;
-    
-    // Update the actual DOM container size
-    this.dom.container.style.width = this.width + "px";
-    this.dom.container.style.height = this.height + "px";
-    
-    this.map.sync();
+  // Update the actual DOM container size
+  this.dom.container.style.width = this.width + "px";
+  this.dom.container.style.height = this.height + "px";
 
-    if (this.vector) {
-        this.dom.svg.setAttribute("width", this.width);
-        this.dom.svg.setAttribute("height", this.height);
-    }
+  this.map.sync();
+
+  if (this.vector) {
+    this.dom.svg.setAttribute("width", this.width);
+    this.dom.svg.setAttribute("height", this.height);
+  }
 };
 
 SQL.Designer.prototype.requestLanguage = function (callback) {
-    /* get locale file */
-    var lang = this.getOption("locale");
-    var bp = this.getOption("staticpath");
-    var url = bp + "locale/" + lang + ".xml";
-    var self = this;
-    OZ.Request(url, function(xmlDoc) {
-        self.languageResponse(xmlDoc, callback);
-    }, {
-        method: "get",
-        xml: true,
-    });
+  /* get locale file */
+  var lang = this.getOption("locale");
+  var bp = this.getOption("staticpath");
+  var url = bp + "locale/" + lang + ".xml";
+  var self = this;
+  OZ.Request(
+    url,
+    function (xmlDoc) {
+      self.languageResponse(xmlDoc, callback);
+    },
+    {
+      method: "get",
+      xml: true,
+    }
+  );
 };
 
 SQL.Designer.prototype.languageResponse = function (xmlDoc, callback) {
-    if (xmlDoc) {
-        var strings = xmlDoc.getElementsByTagName("string");
-        for (var i = 0; i < strings.length; i++) {
-            var n = strings[i].getAttribute("name");
-            var v = strings[i].firstChild.nodeValue;
-            window.LOCALE[n] = v;
-        }
+  if (xmlDoc) {
+    var strings = xmlDoc.getElementsByTagName("string");
+    for (var i = 0; i < strings.length; i++) {
+      var n = strings[i].getAttribute("name");
+      var v = strings[i].firstChild.nodeValue;
+      window.LOCALE[n] = v;
     }
-    // If callback provided, this is a dynamic update (not initial load)
-    if (callback) {
-        callback();
-        return;
-    }
-    // Otherwise, this is initial load
-    this.flag--;
-    if (!this.flag) {
-        this.init2();
-    }
+  }
+  // If callback provided, this is a dynamic update (not initial load)
+  if (callback) {
+    callback();
+    return;
+  }
+  // Otherwise, this is initial load
+  this.flag--;
+  if (!this.flag) {
+    this.init2();
+  }
 };
 
 SQL.Designer.prototype.requestDB = function (callback) {
-    /* get datatypes file */
-    var db = this.getOption("db");
-    var bp = this.getOption("staticpath");
-    var url = bp + "db/" + db + "/datatypes.xml";
-    var self = this;
-    OZ.Request(url, function(xmlDoc) {
-        self.dbResponse(xmlDoc, callback);
-    }, { method: "get", xml: true });
+  /* get datatypes file */
+  var db = this.getOption("db");
+  var bp = this.getOption("staticpath");
+  var url = bp + "db/" + db + "/datatypes.xml";
+  var self = this;
+  OZ.Request(
+    url,
+    function (xmlDoc) {
+      self.dbResponse(xmlDoc, callback);
+    },
+    { method: "get", xml: true }
+  );
 };
 
 SQL.Designer.prototype.dbResponse = function (xmlDoc, callback) {
-    if (xmlDoc) {
-        window.DATATYPES = xmlDoc.documentElement;
-        // Reset type index caches since datatypes changed
-        this.typeIndex = false;
-        this.fkTypeFor = false;
-    }
-    // If callback provided, this is a dynamic update (not initial load)
-    if (callback) {
-        callback();
-        return;
-    }
-    // Otherwise, this is initial load
-    this.flag--;
-    if (!this.flag) {
-        this.init2();
-    }
+  if (xmlDoc) {
+    window.DATATYPES = xmlDoc.documentElement;
+    // Reset type index caches since datatypes changed
+    this.typeIndex = false;
+    this.fkTypeFor = false;
+  }
+  // If callback provided, this is a dynamic update (not initial load)
+  if (callback) {
+    callback();
+    return;
+  }
+  // Otherwise, this is initial load
+  this.flag--;
+  if (!this.flag) {
+    this.init2();
+  }
 };
 
 SQL.Designer.prototype.applyStyle = function () {
-    /* apply style */
-    var style = this.getOption("style");
-    var i,
-        link_elms = document.querySelectorAll("link");
-    for (i = 0; i < link_elms.length; i++) {
-        if (
-            link_elms[i].getAttribute("rel").indexOf("style") != -1 &&
-            link_elms[i].getAttribute("title")
-        ) {
-            link_elms[i].disabled = true;
-            if (link_elms[i].getAttribute("title") == style)
-                link_elms[i].disabled = false;
-        }
+  /* apply style */
+  var style = this.getOption("style");
+  var i,
+    link_elms = document.querySelectorAll("link");
+  for (i = 0; i < link_elms.length; i++) {
+    if (
+      link_elms[i].getAttribute("rel").indexOf("style") != -1 &&
+      link_elms[i].getAttribute("title")
+    ) {
+      link_elms[i].disabled = true;
+      if (link_elms[i].getAttribute("title") == style)
+        link_elms[i].disabled = false;
     }
+  }
 };
 
 SQL.Designer.prototype.updateLocaleUI = function () {
-    /* update all UI elements that use translations */
-    if (!this.options || !this.tableManager || !this.io) {
-        return; // Not fully initialized yet
+  /* update all UI elements that use translations */
+  if (!this.options || !this.tableManager || !this.io) {
+    return; // Not fully initialized yet
+  }
+
+  // Update options button
+  if (this.options.dom && this.options.dom.btn) {
+    this.options.dom.btn.value = _("options");
+  }
+
+  // Update options dialog labels (if dialog is currently open)
+  if (
+    this.window &&
+    this.window.state &&
+    this.window.dom &&
+    this.window.dom.content
+  ) {
+    var ids = [
+      "language",
+      "db",
+      "snap",
+      "pattern",
+      "style",
+      "hide",
+      "vector",
+      "showsize",
+      "showtype",
+      "optionsnapnotice",
+      "optionpatternnotice",
+      "optionsnotice",
+      "autosave",
+    ];
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      var elm = OZ.$(id);
+      if (elm && id !== "aiagent" && id !== "aiapikey" && id !== "aiprovider") {
+        elm.innerHTML = _(id);
+      }
     }
-    
-    // Update options button
-    if (this.options.dom && this.options.dom.btn) {
-        this.options.dom.btn.value = _("options");
+  }
+
+  // Update table manager buttons and labels
+  if (this.tableManager.dom) {
+    var tableIds = [
+      "addtable",
+      "removetable",
+      "aligntables",
+      "aiorganize",
+      "cleartables",
+      "addrow",
+      "edittable",
+      "tablekeys",
+    ];
+    for (var i = 0; i < tableIds.length; i++) {
+      var id = tableIds[i];
+      if (this.tableManager.dom[id]) {
+        this.tableManager.dom[id].value = _(id);
+      }
     }
-    
-    // Update options dialog labels (if dialog is currently open)
-    if (this.window && this.window.state && this.window.dom && this.window.dom.content) {
-        var ids = [
-            "language",
-            "db",
-            "snap",
-            "pattern",
-            "style",
-            "hide",
-            "vector",
-            "showsize",
-            "showtype",
-            "optionsnapnotice",
-            "optionpatternnotice",
-            "optionsnotice",
-            "autosave"
-        ];
-        for (var i = 0; i < ids.length; i++) {
-            var id = ids[i];
-            var elm = OZ.$(id);
-            if (elm && id !== "aiagent" && id !== "aiapikey" && id !== "aiprovider") {
-                elm.innerHTML = _(id);
-            }
-        }
+
+    var labelIds = ["tablenamelabel", "tablecommentlabel"];
+    for (var i = 0; i < labelIds.length; i++) {
+      var id = labelIds[i];
+      var elm = OZ.$(id);
+      if (elm) {
+        elm.innerHTML = _(id);
+      }
     }
-    
-    // Update table manager buttons and labels
-    if (this.tableManager.dom) {
-        var tableIds = [
-            "addtable",
-            "removetable",
-            "aligntables",
-            "aiorganize",
-            "cleartables",
-            "addrow",
-            "edittable",
-            "tablekeys",
-        ];
-        for (var i = 0; i < tableIds.length; i++) {
-            var id = tableIds[i];
-            if (this.tableManager.dom[id]) {
-                this.tableManager.dom[id].value = _(id);
-            }
-        }
-        
-        var labelIds = ["tablenamelabel", "tablecommentlabel"];
-        for (var i = 0; i < labelIds.length; i++) {
-            var id = labelIds[i];
-            var elm = OZ.$(id);
-            if (elm) {
-                elm.innerHTML = _(id);
-            }
-        }
-        
-        // Update remove table button text based on selection
-        this.tableManager.processSelection();
+
+    // Update remove table button text based on selection
+    this.tableManager.processSelection();
+  }
+
+  // Update row manager buttons
+  if (this.rowManager && this.rowManager.dom) {
+    var rowIds = [
+      "editrow",
+      "removerow",
+      "uprow",
+      "downrow",
+      "foreigncreate",
+      "foreignconnect",
+      "foreigndisconnect",
+    ];
+    for (var i = 0; i < rowIds.length; i++) {
+      var id = rowIds[i];
+      if (this.rowManager.dom[id]) {
+        this.rowManager.dom[id].value = _(id);
+      }
     }
-    
-    // Update row manager buttons
-    if (this.rowManager && this.rowManager.dom) {
-        var rowIds = [
-            "editrow",
-            "removerow",
-            "uprow",
-            "downrow",
-            "foreigncreate",
-            "foreignconnect",
-            "foreigndisconnect",
-        ];
-        for (var i = 0; i < rowIds.length; i++) {
-            var id = rowIds[i];
-            if (this.rowManager.dom[id]) {
-                this.rowManager.dom[id].value = _(id);
-            }
+    this.rowManager.redraw();
+  }
+
+  // Update IO buttons and labels
+  if (this.io && this.io.dom) {
+    var ioIds = [
+      "saveload",
+      "clientlocalsave",
+      "clientsave",
+      "clientlocalload",
+      "clientlocallist",
+      "clientload",
+      "clientnew",
+      "clientsql",
+      "dropboxsave",
+      "dropboxload",
+      "dropboxlist",
+      "quicksave",
+      "serversave",
+      "serverload",
+      "serverlist",
+      "serverimport",
+    ];
+    for (var i = 0; i < ioIds.length; i++) {
+      var id = ioIds[i];
+      if (this.io.dom[id]) {
+        var value = _(id);
+        if (id === "quicksave") {
+          value += " (F2)";
         }
-        this.rowManager.redraw();
+        this.io.dom[id].value = value;
+      }
     }
-    
-    // Update IO buttons and labels
-    if (this.io && this.io.dom) {
-        var ioIds = [
-            "saveload",
-            "clientlocalsave",
-            "clientsave",
-            "clientlocalload",
-            "clientlocallist",
-            "clientload",
-            "clientnew",
-            "clientsql",
-            "dropboxsave",
-            "dropboxload",
-            "dropboxlist",
-            "quicksave",
-            "serversave",
-            "serverload",
-            "serverlist",
-            "serverimport",
-        ];
-        for (var i = 0; i < ioIds.length; i++) {
-            var id = ioIds[i];
-            if (this.io.dom[id]) {
-                var value = _(id);
-                if (id === "quicksave") {
-                    value += " (F2)";
-                }
-                this.io.dom[id].value = value;
-            }
-        }
-        
-        var ioLabelIds = ["client", "server", "output", "backendlabel"];
-        for (var i = 0; i < ioLabelIds.length; i++) {
-            var id = ioLabelIds[i];
-            var elm = OZ.$(id);
-            if (elm) {
-                elm.innerHTML = _(id);
-            }
-        }
+
+    var ioLabelIds = ["client", "server", "output", "backendlabel"];
+    for (var i = 0; i < ioLabelIds.length; i++) {
+      var id = ioLabelIds[i];
+      var elm = OZ.$(id);
+      if (elm) {
+        elm.innerHTML = _(id);
+      }
     }
-    
-    // Update docs button
-    var docsElm = OZ.$("docs");
-    if (docsElm) {
-        docsElm.value = _("docs");
+  }
+
+  // Update docs button
+  var docsElm = OZ.$("docs");
+  if (docsElm) {
+    docsElm.value = _("docs");
+  }
+
+  // Update window buttons
+  if (this.window && this.window.dom) {
+    if (this.window.dom.ok) {
+      this.window.dom.ok.value = _("windowok");
     }
-    
-    // Update window buttons
-    if (this.window && this.window.dom) {
-        if (this.window.dom.ok) {
-            this.window.dom.ok.value = _("windowok");
-        }
-        if (this.window.dom.cancel) {
-            this.window.dom.cancel.value = _("windowcancel");
-        }
+    if (this.window.dom.cancel) {
+      this.window.dom.cancel.value = _("windowcancel");
     }
+  }
 };
 
 SQL.Designer.prototype.updateDatatypesUI = function () {
-    /* update all tables and rows to reflect new datatypes */
-    if (!this.tables) {
-        return; // Not initialized yet
-    }
-    
-    // Re-render all tables and rows
-    for (var i = 0; i < this.tables.length; i++) {
-        var table = this.tables[i];
-        
-        // Update all rows in the table
-        for (var j = 0; j < table.rows.length; j++) {
-            var row = table.rows[j];
-            
-            // If row is expanded, rebuild the type select dropdown
-            if (row.expanded && row.dom && row.dom.type) {
-                var currentType = row.data.type;
-                // Ensure type index is valid for new datatypes
-                var typeCount = window.DATATYPES ? window.DATATYPES.getElementsByTagName("type").length : 0;
-                if (typeCount > 0 && currentType >= typeCount) {
-                    // Type index is out of bounds, use first available type
-                    currentType = 0;
-                    row.data.type = 0;
-                }
-                // Rebuild the type select with new datatypes
-                var parent = row.dom.type.parentNode;
-                var newTypeSelect = row.buildTypeSelect(currentType);
-                parent.replaceChild(newTypeSelect, row.dom.type);
-                row.dom.type = newTypeSelect;
-            }
-            
-            // Redraw the row to update type hints and colors
-            row.redraw();
+  /* update all tables and rows to reflect new datatypes */
+  if (!this.tables) {
+    return; // Not initialized yet
+  }
+
+  // Re-render all tables and rows
+  for (var i = 0; i < this.tables.length; i++) {
+    var table = this.tables[i];
+
+    // Update all rows in the table
+    for (var j = 0; j < table.rows.length; j++) {
+      var row = table.rows[j];
+
+      // If row is expanded, rebuild the type select dropdown
+      if (row.expanded && row.dom && row.dom.type) {
+        var currentType = row.data.type;
+        // Ensure type index is valid for new datatypes
+        var typeCount = window.DATATYPES
+          ? window.DATATYPES.getElementsByTagName("type").length
+          : 0;
+        if (typeCount > 0 && currentType >= typeCount) {
+          // Type index is out of bounds, use first available type
+          currentType = 0;
+          row.data.type = 0;
         }
-        
-        // Redraw the table
-        table.redraw();
+        // Rebuild the type select with new datatypes
+        var parent = row.dom.type.parentNode;
+        var newTypeSelect = row.buildTypeSelect(currentType);
+        parent.replaceChild(newTypeSelect, row.dom.type);
+        row.dom.type = newTypeSelect;
+      }
+
+      // Redraw the row to update type hints and colors
+      row.redraw();
     }
-    
-    // Update relations to reflect new colors if needed
-    for (var i = 0; i < this.relations.length; i++) {
-        this.relations[i].redraw();
-    }
+
+    // Redraw the table
+    table.redraw();
+  }
+
+  // Update relations to reflect new colors if needed
+  for (var i = 0; i < this.relations.length; i++) {
+    this.relations[i].redraw();
+  }
 };
 
 SQL.Designer.prototype.updateRowDisplayOptions = function () {
-    /* update all rows to reflect showtype and showsize option changes */
-    if (!this.tables) {
-        return; // Not initialized yet
+  /* update all rows to reflect showtype and showsize option changes */
+  if (!this.tables) {
+    return; // Not initialized yet
+  }
+
+  // Redraw all rows to update type hints
+  for (var i = 0; i < this.tables.length; i++) {
+    var table = this.tables[i];
+    for (var j = 0; j < table.rows.length; j++) {
+      table.rows[j].redraw();
     }
-    
-    // Redraw all rows to update type hints
-    for (var i = 0; i < this.tables.length; i++) {
-        var table = this.tables[i];
-        for (var j = 0; j < table.rows.length; j++) {
-            table.rows[j].redraw();
-        }
-    }
+  }
 };
 
 SQL.Designer.prototype.init2 = function () {
-    /* secondary init, after locale & datatypes were retrieved */
-    this.map = new SQL.Map(this);
-    this.rubberband = new SQL.Rubberband(this);
-    this.tableManager = new SQL.TableManager(this);
-    this.rowManager = new SQL.RowManager(this);
-    this.keyManager = new SQL.KeyManager(this);
-    this.io = new SQL.IO(this);
-    this.options = new SQL.Options(this);
-    this.window = new SQL.Window(this);
-    this.ai = new SQL.AI(this);
-    this.zoom = new SQL.Zoom(this);
+  /* secondary init, after locale & datatypes were retrieved */
+  this.map = new SQL.Map(this);
+  this.rubberband = new SQL.Rubberband(this);
+  this.tableManager = new SQL.TableManager(this);
+  this.rowManager = new SQL.RowManager(this);
+  this.keyManager = new SQL.KeyManager(this);
+  this.io = new SQL.IO(this);
+  this.options = new SQL.Options(this);
+  this.window = new SQL.Window(this);
+  this.ai = new SQL.AI(this);
+  this.zoom = new SQL.Zoom(this);
 
-    // Try to load last project from localStorage
-    if (window.localStorage) {
-        var lastKey = localStorage.getItem("wwwsqldesigner_last_project");
-        if (lastKey) {
-             try {
-                var xml = localStorage.getItem(lastKey);
-                if (xml) {
-                     // Wait for other initializations (datatypes etc)
-                     var self = this;
-                     setTimeout(function() {
-                         self.io.fromXMLText(xml);
-                         // Also set the lastUsedName for next save
-                         var name = lastKey.replace("wwwsqldesigner_databases_", "");
-                         self.setOption("lastUsedName", name);
-                         self.io.lastUsedName = name;
-                     }, 500);
-                }
-            } catch(e) {
-                console.error("Failed to auto-load last project:", e);
-            }
+  // Try to load last project from localStorage
+  if (window.localStorage) {
+    var lastKey = localStorage.getItem("wwwsqldesigner_last_project");
+    if (lastKey) {
+      try {
+        var xml = localStorage.getItem(lastKey);
+        if (xml) {
+          // Wait for other initializations (datatypes etc)
+          var self = this;
+          setTimeout(function () {
+            self.io.fromXMLText(xml);
+            // Also set the lastUsedName for next save
+            var name = lastKey.replace("wwwsqldesigner_databases_", "");
+            self.setOption("lastUsedName", name);
+            self.io.lastUsedName = name;
+          }, 500);
         }
+      } catch (e) {
+        console.error("Failed to auto-load last project:", e);
+      }
     }
+  }
 
-    this.sync();
+  this.sync();
 
-    OZ.$("docs").value = _("docs");
+  OZ.$("docs").value = _("docs");
 
-    var url = window.location.href;
-    var r = url.match(/keyword=([^&]+)/);
-    if (r) {
-        var keyword = r[1];
-        this.io.serverload(false, keyword);
-    }
-    document.body.style.visibility = "visible";
+  var url = window.location.href;
+  var r = url.match(/keyword=([^&]+)/);
+  if (r) {
+    var keyword = r[1];
+    this.io.serverload(false, keyword);
+  }
+  document.body.style.visibility = "visible";
 };
 
 SQL.Designer.prototype.getMaxZ = function () {
-    /* find max zIndex */
-    var max = 0;
-    for (var i = 0; i < this.tables.length; i++) {
-        var z = this.tables[i].getZ();
-        if (z > max) {
-            max = z;
-        }
+  /* find max zIndex */
+  var max = 0;
+  for (var i = 0; i < this.tables.length; i++) {
+    var z = this.tables[i].getZ();
+    if (z > max) {
+      max = z;
     }
+  }
 
-    OZ.$("controls").style.zIndex = max + 5;
-    return max;
+  OZ.$("controls").style.zIndex = max + 5;
+  return max;
 };
 
 SQL.Designer.prototype.addTable = function (name, x, y) {
-    var max = this.getMaxZ();
-    var t = new SQL.Table(this, name, x, y, max + 1);
-    this.tables.push(t);
-    this.dom.container.appendChild(t.dom.container);
-    this.flagModified();
-    this.tableManager.updateButtons();
-    return t;
+  var max = this.getMaxZ();
+  var t = new SQL.Table(this, name, x, y, max + 1);
+  this.tables.push(t);
+  this.dom.container.appendChild(t.dom.container);
+  this.flagModified();
+  this.tableManager.updateButtons();
+  return t;
 };
 
 SQL.Designer.prototype.removeTable = function (t) {
-    this.tableManager.select(false);
-    this.rowManager.select(false);
-    var idx = this.tables.indexOf(t);
-    if (idx == -1) {
-        return;
-    }
-    t.destroy();
-    this.tables.splice(idx, 1);
-    this.flagModified();
-    this.tableManager.updateButtons();
+  this.tableManager.select(false);
+  this.rowManager.select(false);
+  var idx = this.tables.indexOf(t);
+  if (idx == -1) {
+    return;
+  }
+  t.destroy();
+  this.tables.splice(idx, 1);
+  this.flagModified();
+  this.tableManager.updateButtons();
 };
 
 SQL.Designer.prototype.addRelation = function (row1, row2) {
-    var r = new SQL.Relation(this, row1, row2);
-    this.relations.push(r);
-    this.flagModified();
-    return r;
+  var r = new SQL.Relation(this, row1, row2);
+  this.relations.push(r);
+  this.flagModified();
+  return r;
 };
 
 SQL.Designer.prototype.removeRelation = function (r) {
-    var idx = this.relations.indexOf(r);
-    if (idx == -1) {
-        return;
-    }
-    r.destroy();
-    this.relations.splice(idx, 1);
-    this.flagModified();
+  var idx = this.relations.indexOf(r);
+  if (idx == -1) {
+    return;
+  }
+  r.destroy();
+  this.relations.splice(idx, 1);
+  this.flagModified();
 };
 
 SQL.Designer.prototype.getCookie = function () {
-    var c = document.cookie;
-    var obj = {};
-    var parts = c.split(";");
-    for (var i = 0; i < parts.length; i++) {
-        var part = parts[i];
-        var r = part.match(/wwwsqldesigner=({.*?})/);
-        if (r) {
-            obj = eval("(" + r[1] + ")");
-        }
+  var c = document.cookie;
+  var obj = {};
+  var parts = c.split(";");
+  for (var i = 0; i < parts.length; i++) {
+    var part = parts[i];
+    var r = part.match(/wwwsqldesigner=({.*?})/);
+    if (r) {
+      obj = eval("(" + r[1] + ")");
     }
-    return obj;
+  }
+  return obj;
 };
 
 SQL.Designer.prototype.setCookie = function (obj) {
-    var arr = [];
-    for (var p in obj) {
-        arr.push(p + ":'" + obj[p] + "'");
-    }
-    var str = "{" + arr.join(",") + "}";
-    document.cookie = "wwwsqldesigner=" + str + "; path=/";
+  var arr = [];
+  for (var p in obj) {
+    arr.push(p + ":'" + obj[p] + "'");
+  }
+  var str = "{" + arr.join(",") + "}";
+  document.cookie = "wwwsqldesigner=" + str + "; path=/";
 };
 
 SQL.Designer.prototype.getOption = function (name) {
-    var c = this.getCookie();
-    if (name in c) {
-        return c[name];
-    }
-    /* defaults */
-    switch (name) {
-        case "locale":
-            return CONFIG.DEFAULT_LOCALE;
-        case "db":
-            return CONFIG.DEFAULT_DB;
-        case "staticpath":
-            return CONFIG.STATIC_PATH || "";
-        case "xhrpath":
-            return CONFIG.XHR_PATH || "";
-        case "snap":
-            return 0;
-        case "showsize":
-            return 0;
-        case "showtype":
-            return 0;
-        case "shownull":
-            return 0;
-        case "pattern":
-            return "%R_%T";
-        case "hide":
-            return false;
-        case "vector":
-            return true;
-        case "style":
-            return "material-inspired";
-        case "autosave":
-            return CONFIG.DEFAULT_AUTOSAVE ? "1" : "";
-        case "zoom":
-            return 100;
-        default:
-            return null;
-    }
+  var c = this.getCookie();
+  if (name in c) {
+    return c[name];
+  }
+  /* defaults */
+  switch (name) {
+    case "locale":
+      return CONFIG.DEFAULT_LOCALE;
+    case "db":
+      return CONFIG.DEFAULT_DB;
+    case "staticpath":
+      return CONFIG.STATIC_PATH || "";
+    case "xhrpath":
+      return CONFIG.XHR_PATH || "";
+    case "snap":
+      return 0;
+    case "showsize":
+      return 0;
+    case "showtype":
+      return 0;
+    case "shownull":
+      return 0;
+    case "pattern":
+      return "%R_%T";
+    case "hide":
+      return false;
+    case "vector":
+      return true;
+    case "style":
+      return "material-inspired";
+    case "autosave":
+      return CONFIG.DEFAULT_AUTOSAVE ? "1" : "";
+    case "zoom":
+      return 100;
+    default:
+      return null;
+  }
 };
 
 SQL.Designer.prototype.setOption = function (name, value) {
-    var obj = this.getCookie();
-    obj[name] = value;
-    this.setCookie(obj);
+  var obj = this.getCookie();
+  obj[name] = value;
+  this.setCookie(obj);
 };
 
 SQL.Designer.prototype.getXhrHeaders = function (value) {
-    return this.xhrheaders;
+  return this.xhrheaders;
 };
 
 SQL.Designer.prototype.setXhrHeaders = function (value) {
-    this.xhrheaders = value;
+  this.xhrheaders = value;
 };
 
 SQL.Designer.prototype.raise = function (table) {
-    /* raise a table */
-    var old = table.getZ();
-    var max = this.getMaxZ();
-    table.setZ(max);
-    for (var i = 0; i < this.tables.length; i++) {
-        var t = this.tables[i];
-        if (t == table) {
-            continue;
-        }
-        if (t.getZ() > old) {
-            t.setZ(t.getZ() - 1);
-        }
+  /* raise a table */
+  var old = table.getZ();
+  var max = this.getMaxZ();
+  table.setZ(max);
+  for (var i = 0; i < this.tables.length; i++) {
+    var t = this.tables[i];
+    if (t == table) {
+      continue;
     }
-    var m = table.dom.mini;
-    m.parentNode.appendChild(m);
+    if (t.getZ() > old) {
+      t.setZ(t.getZ() - 1);
+    }
+  }
+  var m = table.dom.mini;
+  m.parentNode.appendChild(m);
 };
 
 SQL.Designer.prototype.clearTables = function () {
-    while (this.tables.length) {
-        this.removeTable(this.tables[0]);
-    }
-    this.setTitle(false);
-    this.flagModified();
+  while (this.tables.length) {
+    this.removeTable(this.tables[0]);
+  }
+  this.setTitle(false);
+  this.flagModified();
 };
 
 SQL.Designer.prototype.alignTables = function () {
-    // Ensure all tables are redrawn to get accurate dimensions
-    // This is important because table size depends on:
-    // - Number of fields
-    // - Field names length
-    // - Whether showtype/showsize options are enabled
-    for (var i = 0; i < this.tables.length; i++) {
-        this.tables[i].redraw();
-    }
+  // Ensure all tables are redrawn to get accurate dimensions
+  // This is important because table size depends on:
+  // - Number of fields
+  // - Field names length
+  // - Whether showtype/showsize options are enabled
+  for (var i = 0; i < this.tables.length; i++) {
+    this.tables[i].redraw();
+  }
 
-    if (this.tables.length === 0) {
-        return;
-    }
+  if (this.tables.length === 0) {
+    return;
+  }
 
-    var padding = 80; // spacing between tables (50-100px as per AI function)
-    var startX = 50;
-    var startY = 50;
-    
-    // Get actual dimensions for each table
-    var tableData = [];
-    for (var i = 0; i < this.tables.length; i++) {
-        var table = this.tables[i];
-        var width = table.dom.container.offsetWidth || 150;
-        var height = table.dom.container.offsetHeight || 100;
-        tableData.push({
-            table: table,
-            width: width,
-            height: height
-        });
-    }
+  var padding = 80; // spacing between tables (50-100px as per AI function)
+  var startX = 50;
+  var startY = 50;
 
-    // Sort tables by number of relations (tables with more relations first)
-    tableData.sort(function (a, b) {
-        return b.table.getRelations().length - a.table.getRelations().length;
+  // Get actual dimensions for each table
+  var tableData = [];
+  for (var i = 0; i < this.tables.length; i++) {
+    var table = this.tables[i];
+    var width = table.dom.container.offsetWidth || 150;
+    var height = table.dom.container.offsetHeight || 100;
+    tableData.push({
+      table: table,
+      width: width,
+      height: height,
     });
+  }
 
-    // Organize tables in a grid layout, respecting actual dimensions
-    var columns = [];
-    var currentX = startX;
-    var currentY = startY;
-    var maxRowHeight = 0;
-    var maxWidth = 0;
+  // Sort tables by number of relations (tables with more relations first)
+  tableData.sort(function (a, b) {
+    return b.table.getRelations().length - a.table.getRelations().length;
+  });
 
-    for (var i = 0; i < tableData.length; i++) {
-        var data = tableData[i];
-        var tableWidth = data.width;
-        var tableHeight = data.height;
+  // Organize tables in a grid layout, respecting actual dimensions
+  var columns = [];
+  var currentX = startX;
+  var currentY = startY;
+  var maxRowHeight = 0;
+  var maxWidth = 0;
 
-        // Check if table fits in current row
-        var win = OZ.DOM.win();
-        var availWidth = win[0] - OZ.$("bar").offsetWidth - startX;
-        
-        if (currentX + tableWidth + padding > availWidth && currentX > startX) {
-            // Move to next row
-            currentX = startX;
-            currentY += maxRowHeight + padding;
-            maxRowHeight = 0;
-        }
+  for (var i = 0; i < tableData.length; i++) {
+    var data = tableData[i];
+    var tableWidth = data.width;
+    var tableHeight = data.height;
 
-        // Position the table
-        data.table.moveTo(currentX, currentY);
-        
-        // Update tracking variables
-        currentX += tableWidth + padding;
-        if (tableHeight > maxRowHeight) {
-            maxRowHeight = tableHeight;
-        }
-        if (currentX > maxWidth) {
-            maxWidth = currentX;
-        }
+    // Check if table fits in current row
+    var win = OZ.DOM.win();
+    var availWidth = win[0] - OZ.$("bar").offsetWidth - startX;
+
+    if (currentX + tableWidth + padding > availWidth && currentX > startX) {
+      // Move to next row
+      currentX = startX;
+      currentY += maxRowHeight + padding;
+      maxRowHeight = 0;
     }
 
-    this.sync();
-    this.flagModified();
+    // Position the table
+    data.table.moveTo(currentX, currentY);
+
+    // Update tracking variables
+    currentX += tableWidth + padding;
+    if (tableHeight > maxRowHeight) {
+      maxRowHeight = tableHeight;
+    }
+    if (currentX > maxWidth) {
+      maxWidth = currentX;
+    }
+  }
+
+  this.sync();
+  this.flagModified();
 };
 
 SQL.Designer.prototype.findNamedTable = function (name) {
-    /* find row specified as table(row) */
-    for (var i = 0; i < this.tables.length; i++) {
-        if (this.tables[i].getTitle() == name) {
-            return this.tables[i];
-        }
+  /* find row specified as table(row) */
+  for (var i = 0; i < this.tables.length; i++) {
+    if (this.tables[i].getTitle() == name) {
+      return this.tables[i];
     }
+  }
 };
 
 SQL.Designer.prototype.toXML = function () {
-    var xml = '<?xml version="1.0" encoding="utf-8" ?>\n';
-    xml +=
-        "<!-- SQL XML created by WWW SQL Designer, https://github.com/ondras/wwwsqldesigner/ -->\n";
-    xml += "<!-- Active URL: " + location.href + " -->\n";
-    xml += "<sql>\n";
+  var xml = '<?xml version="1.0" encoding="utf-8" ?>\n';
+  xml +=
+    "<!-- SQL XML created by WWW SQL Designer, https://github.com/ondras/wwwsqldesigner/ -->\n";
+  xml += "<!-- Active URL: " + location.href + " -->\n";
+  xml += "<sql>\n";
 
-    /* serialize datatypes */
-    if (window.XMLSerializer) {
-        var s = new XMLSerializer();
-        xml += s.serializeToString(window.DATATYPES);
-    } else if (window.DATATYPES.xml) {
-        xml += window.DATATYPES.xml;
-    } else {
-        alert(_("errorxml") + ": " + e.message);
-    }
+  /* serialize datatypes */
+  if (window.XMLSerializer) {
+    var s = new XMLSerializer();
+    xml += s.serializeToString(window.DATATYPES);
+  } else if (window.DATATYPES.xml) {
+    xml += window.DATATYPES.xml;
+  } else {
+    alert(_("errorxml"));
+  }
 
-    for (var i = 0; i < this.tables.length; i++) {
-        xml += this.tables[i].toXML();
-    }
-    xml += "</sql>\n";
-    return xml;
+  for (var i = 0; i < this.tables.length; i++) {
+    xml += this.tables[i].toXML();
+  }
+  xml += "</sql>\n";
+  return xml;
 };
 
 SQL.Designer.prototype.fromXML = function (node) {
-    this.clearTables();
-    var types = node.getElementsByTagName("datatypes");
-    if (types.length) {
-        window.DATATYPES = types[0];
+  this.clearTables();
+  var types = node.getElementsByTagName("datatypes");
+  if (types.length) {
+    window.DATATYPES = types[0];
+  }
+  var tables = node.getElementsByTagName("table");
+  for (var i = 0; i < tables.length; i++) {
+    var t = this.addTable("", 0, 0);
+    t.fromXML(tables[i]);
+  }
+
+  for (var i = 0; i < this.tables.length; i++) {
+    /* ff one-pixel shift hack */
+    this.tables[i].select();
+    this.tables[i].deselect();
+  }
+
+  /* relations */
+  var rs = node.getElementsByTagName("relation");
+  for (var i = 0; i < rs.length; i++) {
+    var rel = rs[i];
+    var tname = rel.getAttribute("table");
+    var rname = rel.getAttribute("row");
+
+    var t1 = this.findNamedTable(tname);
+    if (!t1) {
+      continue;
     }
-    var tables = node.getElementsByTagName("table");
-    for (var i = 0; i < tables.length; i++) {
-        var t = this.addTable("", 0, 0);
-        t.fromXML(tables[i]);
-    }
-
-    for (var i = 0; i < this.tables.length; i++) {
-        /* ff one-pixel shift hack */
-        this.tables[i].select();
-        this.tables[i].deselect();
-    }
-
-    /* relations */
-    var rs = node.getElementsByTagName("relation");
-    for (var i = 0; i < rs.length; i++) {
-        var rel = rs[i];
-        var tname = rel.getAttribute("table");
-        var rname = rel.getAttribute("row");
-
-        var t1 = this.findNamedTable(tname);
-        if (!t1) {
-            continue;
-        }
-        var r1 = t1.findNamedRow(rname);
-        if (!r1) {
-            continue;
-        }
-
-        tname = rel.parentNode.parentNode.getAttribute("name");
-        rname = rel.parentNode.getAttribute("name");
-        var t2 = this.findNamedTable(tname);
-        if (!t2) {
-            continue;
-        }
-        var r2 = t2.findNamedRow(rname);
-        if (!r2) {
-            continue;
-        }
-
-        this.addRelation(r1, r2);
+    var r1 = t1.findNamedRow(rname);
+    if (!r1) {
+      continue;
     }
 
-    this.sync();
-    this.resetModified();
+    tname = rel.parentNode.parentNode.getAttribute("name");
+    rname = rel.parentNode.getAttribute("name");
+    var t2 = this.findNamedTable(tname);
+    if (!t2) {
+      continue;
+    }
+    var r2 = t2.findNamedRow(rname);
+    if (!r2) {
+      continue;
+    }
+
+    this.addRelation(r1, r2);
+  }
+
+  this.sync();
+  this.resetModified();
 };
 
 SQL.Designer.prototype.updateFromXML = function (node) {
-    var tables = node.getElementsByTagName("table");
-    for (var i = 0; i < tables.length; i++) {
-        var t = this.addTable("", 0, 0);
-        t.fromXML(tables[i]);
+  var tables = node.getElementsByTagName("table");
+  for (var i = 0; i < tables.length; i++) {
+    var t = this.addTable("", 0, 0);
+    t.fromXML(tables[i]);
+  }
+
+  for (var i = 0; i < this.tables.length; i++) {
+    /* ff one-pixel shift hack */
+    this.tables[i].select();
+    this.tables[i].deselect();
+  }
+
+  /* relations */
+  var rs = node.getElementsByTagName("relation");
+  for (var i = 0; i < rs.length; i++) {
+    var rel = rs[i];
+    var tname = rel.getAttribute("table");
+    var rname = rel.getAttribute("row");
+
+    var t1 = this.findNamedTable(tname);
+    if (!t1) {
+      continue;
+    }
+    var r1 = t1.findNamedRow(rname);
+    if (!r1) {
+      continue;
     }
 
-    for (var i = 0; i < this.tables.length; i++) {
-        /* ff one-pixel shift hack */
-        this.tables[i].select();
-        this.tables[i].deselect();
+    tname = rel.parentNode.parentNode.getAttribute("name");
+    rname = rel.parentNode.getAttribute("name");
+    var t2 = this.findNamedTable(tname);
+    if (!t2) {
+      continue;
+    }
+    var r2 = t2.findNamedRow(rname);
+    if (!r2) {
+      continue;
     }
 
-    /* relations */
-    var rs = node.getElementsByTagName("relation");
-    for (var i = 0; i < rs.length; i++) {
-        var rel = rs[i];
-        var tname = rel.getAttribute("table");
-        var rname = rel.getAttribute("row");
+    this.addRelation(r1, r2);
+  }
 
-        var t1 = this.findNamedTable(tname);
-        if (!t1) {
-            continue;
-        }
-        var r1 = t1.findNamedRow(rname);
-        if (!r1) {
-            continue;
-        }
-
-        tname = rel.parentNode.parentNode.getAttribute("name");
-        rname = rel.parentNode.getAttribute("name");
-        var t2 = this.findNamedTable(tname);
-        if (!t2) {
-            continue;
-        }
-        var r2 = t2.findNamedRow(rname);
-        if (!r2) {
-            continue;
-        }
-
-        this.addRelation(r1, r2);
-    }
-
-    this.sync();
-    this.resetModified();
+  this.sync();
+  this.resetModified();
 };
 
 SQL.Designer.prototype.setTitle = function (t) {
-    document.title = this.title + (t ? " - " + t : "");
+  document.title = this.title + (t ? " - " + t : "");
 };
 
 SQL.Designer.prototype.removeSelection = function () {
-    var sel = window.getSelection ? window.getSelection() : document.selection;
-    if (!sel) {
-        return;
-    }
-    if (sel.empty) {
-        sel.empty();
-    }
-    if (sel.removeAllRanges) {
-        sel.removeAllRanges();
-    }
+  var sel = window.getSelection ? window.getSelection() : document.selection;
+  if (!sel) {
+    return;
+  }
+  if (sel.empty) {
+    sel.empty();
+  }
+  if (sel.removeAllRanges) {
+    sel.removeAllRanges();
+  }
 };
 
 SQL.Designer.prototype.getTypeIndex = function (label) {
-    if (!this.typeIndex) {
-        this.typeIndex = {};
-        var types = window.DATATYPES.getElementsByTagName("type");
-        for (var i = 0; i < types.length; i++) {
-            var l = types[i].getAttribute("label");
-            if (l) {
-                this.typeIndex[l] = i;
-            }
-        }
+  if (!this.typeIndex) {
+    this.typeIndex = {};
+    var types = window.DATATYPES.getElementsByTagName("type");
+    for (var i = 0; i < types.length; i++) {
+      var l = types[i].getAttribute("label");
+      if (l) {
+        this.typeIndex[l] = i;
+      }
     }
-    return this.typeIndex[label];
+  }
+  return this.typeIndex[label];
 };
 
 SQL.Designer.prototype.getFKTypeFor = function (typeIndex) {
-    if (!this.fkTypeFor) {
-        this.fkTypeFor = {};
-        var types = window.DATATYPES.getElementsByTagName("type");
-        for (var i = 0; i < types.length; i++) {
-            this.fkTypeFor[i] = i;
-            var fk = types[i].getAttribute("fk");
-            if (fk) {
-                this.fkTypeFor[i] = this.getTypeIndex(fk);
-            }
-        }
+  if (!this.fkTypeFor) {
+    this.fkTypeFor = {};
+    var types = window.DATATYPES.getElementsByTagName("type");
+    for (var i = 0; i < types.length; i++) {
+      this.fkTypeFor[i] = i;
+      var fk = types[i].getAttribute("fk");
+      if (fk) {
+        this.fkTypeFor[i] = this.getTypeIndex(fk);
+      }
     }
-    return this.fkTypeFor[typeIndex];
+  }
+  return this.fkTypeFor[typeIndex];
 };
