@@ -97,15 +97,75 @@ var CONFIG = {
    */
   DROPBOX_KEY: null, // such as: "d6stdscwewhl6sa"
 
-  AVAILABLE_AI_PROVIDERS: ["Google Gemini", "OpenAI", "Grok"],
+  AVAILABLE_AI_PROVIDERS: ["Google Gemini"],
   DEFAULT_AI_PROVIDER: "Google Gemini",
 
   DEFAULT_AUTOSAVE: false,
 
   // Default models if API list fails
   AI_MODELS: {
-    "Google Gemini": ["gemini-1.5-flash", "gemini-1.5-pro"],
-    OpenAI: ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
-    Grok: ["grok-2", "grok-beta"],
+    "Google Gemini": ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview"]
+  },
+
+  // Allowed Gemini models (filtered list from API)
+  ALLOWED_GEMINI_MODELS: [
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    "gemini-3-pro-preview",
+    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-flash-latest",
+    "gemini-pro-latest",
+    "gemini-flash-lite-latest",
+  ],
+
+  // Function to convert model name to display name
+  getModelDisplayName: function (modelName) {
+    if (!modelName) return "";
+    
+    // Remove "models/" prefix if present
+    var name = modelName.replace("models/", "");
+    
+    // Handle "latest" aliases
+    if (name === "gemini-flash-latest") return "Gemini Flash (Latest)";
+    if (name === "gemini-pro-latest") return "Gemini Pro (Latest)";
+    if (name === "gemini-flash-lite-latest") return "Gemini Flash Lite (Latest)";
+    
+    // Convert kebab-case to Title Case
+    var parts = name.split("-");
+    var displayParts = [];
+    
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i];
+      
+      // Skip empty parts
+      if (!part) continue;
+      
+      // Skip "preview" and "exp" - we'll add them at the end
+      if (part === "preview" || part === "exp") continue;
+      
+      // Handle version numbers
+      if (part.match(/^\d+\.\d+$/)) {
+        // Version like "2.5" -> "2.5"
+        displayParts.push(part);
+      } else if (part.match(/^\d+$/)) {
+        // Single number like "3" -> "3"
+        displayParts.push(part);
+      } else {
+        // Regular word - capitalize first letter
+        displayParts.push(part.charAt(0).toUpperCase() + part.slice(1));
+      }
+    }
+    
+    var displayName = displayParts.join(" ");
+    
+    // Add preview/exp suffix if present
+    if (name.includes("-preview")) {
+      displayName += " (Preview)";
+    } else if (name.includes("-exp")) {
+      displayName += " (Experimental)";
+    }
+    
+    return displayName;
   },
 };

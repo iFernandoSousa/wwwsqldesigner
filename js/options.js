@@ -28,6 +28,8 @@ SQL.Options.prototype.build = function () {
   this.dom.optionautosave = OZ.$("optionautosave");
   this.dom.btnlistmodels = OZ.$("btnlistmodels");
   this.dom.btnlistmodels.value = _("listmodels");
+  this.dom.rowaiapikey = OZ.$("rowaiapikey");
+  this.dom.rowaiagent = OZ.$("rowaiagent");
 
   var ids = [
     "language",
@@ -111,13 +113,16 @@ SQL.Options.prototype.build = function () {
 
   // Populate models based on current provider or defaults
   this.updateModels();
+  
+  // Set initial visibility of AI fields
+  this.toggleAIFieldsVisibility();
 
   OZ.Event.add(this.dom.btn, "click", this.click.bind(this));
   OZ.Event.add(this.dom.btnlistmodels, "click", this.listModels.bind(this));
   OZ.Event.add(
     this.dom.optionaiprovider,
     "change",
-    this.updateModels.bind(this)
+    this.handleProviderChange.bind(this)
   );
 
   // Add change event listeners for auto-refresh
@@ -163,6 +168,23 @@ SQL.Options.prototype.build = function () {
   this.dom.container.parentNode.removeChild(this.dom.container);
 };
 
+SQL.Options.prototype.toggleAIFieldsVisibility = function () {
+  var provider = this.dom.optionaiprovider.value;
+  var hasProvider = provider && provider.trim() !== "";
+  
+  if (this.dom.rowaiapikey) {
+    this.dom.rowaiapikey.style.display = hasProvider ? "" : "none";
+  }
+  if (this.dom.rowaiagent) {
+    this.dom.rowaiagent.style.display = hasProvider ? "" : "none";
+  }
+};
+
+SQL.Options.prototype.handleProviderChange = function () {
+  this.updateModels();
+  this.toggleAIFieldsVisibility();
+};
+
 SQL.Options.prototype.updateModels = function () {
   var provider = this.dom.optionaiprovider.value;
   var currentModel = this.owner.getOption("ai_agent");
@@ -192,8 +214,13 @@ SQL.Options.prototype.updateModels = function () {
     var models = CONFIG.AI_MODELS[provider];
     for (var i = 0; i < models.length; i++) {
       var o = OZ.DOM.elm("option");
-      o.value = models[i];
-      o.innerHTML = models[i];
+      o.value = models[i]; // Store internal name as value
+      // Show display name in UI
+      if (provider === "Google Gemini" && CONFIG.getModelDisplayName) {
+        o.innerHTML = CONFIG.getModelDisplayName(models[i]);
+      } else {
+        o.innerHTML = models[i];
+      }
       this.dom.optionaiagent.appendChild(o);
       if (currentModel == models[i]) {
         this.dom.optionaiagent.selectedIndex = i + 1;
@@ -223,6 +250,8 @@ SQL.Options.prototype.listModels = function () {
       .then((response) => response.json())
       .then((data) => {
         if (data.models) {
+          var allowedModels = CONFIG.ALLOWED_GEMINI_MODELS || [];
+          
           var models = data.models
             .filter(
               (m) =>
@@ -236,7 +265,9 @@ SQL.Options.prototype.listModels = function () {
             .filter((m) => !m.displayName.toLowerCase().includes("image")) // Check display name too
             .filter((m) => !m.name.includes("nano")) // Exclude Nano models
             .filter((m) => !m.displayName.toLowerCase().includes("banana")) // Exclude Banana models
-            .map((m) => m.name.replace("models/", ""));
+            .map((m) => m.name.replace("models/", ""))
+            // Filter to only include allowed models
+            .filter((m) => allowedModels.includes(m));
 
           // Update Config to cache (optional) or just UI
           CONFIG.AI_MODELS["Google Gemini"] = models;
@@ -371,6 +402,9 @@ SQL.Options.prototype.click = function () {
 
   // Trigger update to set correct model if provider is already set
   this.updateModels();
+  
+  // Update visibility of AI fields based on provider selection
+  this.toggleAIFieldsVisibility();
 
   // Update AI button visibility when options dialog opens
   if (this.owner.ai && this.owner.ai.updateButtonVisibility) {
