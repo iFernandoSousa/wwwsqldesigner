@@ -4,6 +4,7 @@
     <string name="addtable">إنشاء جدول</string>
     <string name="edittable">تحرير جدول</string>
     <string name="removetable">حذف جدول</string>
+    <string name="removetables">حذف الجداول</string>
     <string name="aligntables">محاذاة الجداول</string>
     <string name="aiorganize">Organize using AI</string>
     <string name="cleartables">حذف جميع البيانات</string>
@@ -53,12 +54,14 @@
     <string name="optionpatternnotice">%T = الجدول الرئيسي, %R = المفتاح الرئيسي, %t = الجدول الخارجي</string>
     <string name="hide">إخفاء الخطوط عند تحريك الجدول؟</string>
     <string name="vector">رسم خطوط ناعمة (إذا كان المتصفح يدعم ذلك) ؟</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">إظهار حجم الحقل في تصميم الجدول؟</string>
+    <string name="showtype">إظهار نوع بيانات الحقل في تصميم الجدول؟</string>
+    <string name="shownull">إظهار NULL/NOT NULL في تصميم الجدول؟</string>
     <string name="style">قلم المدقة</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
-
+    <string name="listmodels">قائمة النماذج</string>
 
     <!-- keys -->
     <string name="tablekeys">المفاتيح</string>
@@ -80,9 +83,18 @@
     <string name="output">المدخلات / المخرجات</string>
     <string name="clientsave">حفظ كنموذح XML</string>
     <string name="clientload">إستيراد نموذج XML</string>
+    <string name="clientlocalsave">حفظ في المتصفح</string>
+    <string name="clientlocalload">تحميل من المتصفح</string>
+    <string name="clientlocallist">قائمة من المتصفح</string>
+    <string name="dropboxsave">حفظ في Dropbox</string>
+    <string name="dropboxload">تحميل من Dropbox</string>
+    <string name="dropboxlist">قائمة من Dropbox</string>
     <string name="clientsql">حفظ كنموذج SQL</string>
+    <string name="downloadxml">تحميل</string>
+    <string name="uploadxml">رفع</string>
     <string name="backendlabel">Server backend:</string>
     <string name="serversave">حفظ</string>
+    <string name="quicksave">حفظ سريع</string>
     <string name="serverload">تحميل</string>
     <string name="serverlist">List items</string>
     <string name="serverimport">إستيراد من قاعدة بيانات</string>

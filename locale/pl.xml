@@ -54,13 +54,14 @@
     <string name="optionpatternnotice">%T = główna tabela, %R = klucz główny, %t = zewnętrzna tabela</string>
     <string name="hide">Ukryć złącza w tabeli podczas przeciągania?</string>
     <string name="vector">Rysuj pływające złącza (jesli wsperane jest przez przeglądarkę)?</string>
-    <string name="showsize">Show field size in table design?</string>
-    <string name="showtype">Show field datatype in table design?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">Pokaż rozmiar pola w projekcie tabeli?</string>
+    <string name="showtype">Pokaż typ danych pola w projekcie tabeli?</string>
+    <string name="shownull">Pokaż NULL/NOT NULL w projekcie tabeli?</string>
     <string name="style">Styl</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Lista Modeli</string>
 
     <!-- keys -->
     <string name="tablekeys">Klucze</string>
@@ -82,10 +83,18 @@
     <string name="output">Wejście / Wyjście</string>
     <string name="clientsave">Zapisz XML</string>
     <string name="clientload">Załaduj XML</string>
+    <string name="clientlocalsave">Zapisz w Przeglądarce</string>
+    <string name="clientlocalload">Załaduj z Przeglądarki</string>
+    <string name="clientlocallist">Lista z Przeglądarki</string>
+    <string name="dropboxsave">Zapisz w Dropbox</string>
+    <string name="dropboxload">Załaduj z Dropbox</string>
+    <string name="dropboxlist">Lista z Dropbox</string>
     <string name="clientsql">Generuj SQL</string>
+    <string name="downloadxml">Pobierz</string>
+    <string name="uploadxml">Prześlij</string>
     <string name="backendlabel">Serwer wejściowy:</string>
     <string name="serversave">Zapisz</string>
-    <string name="quicksave">Quicksave</string>
+    <string name="quicksave">Szybkie Zapisywanie</string>
     <string name="serverload">Otwórz</string>
     <string name="serverlist">Lista pozycji</string>
     <string name="serverimport">Importuj z DB</string>

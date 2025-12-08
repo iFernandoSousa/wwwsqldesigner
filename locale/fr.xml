@@ -56,11 +56,12 @@
     <string name="vector">Dessiner des connecteurs « adoucis » (si le navigateur le supporte) ?</string>
     <string name="showsize">Afficher la taille du champ dans le schéma de table ?</string>
     <string name="showtype">Afficher le type du champ dans le schéma de table ?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Afficher NULL/NOT NULL dans le schéma de table ?</string>
     <string name="style">Style</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Lister les modèles</string>
 
     <!-- keys -->
     <string name="tablekeys">Clés</string>
@@ -85,7 +86,12 @@
     <string name="clientlocalsave">Enregistrer dans le navigateur</string>
     <string name="clientlocalload">Charger depuis le navigateur</string>
     <string name="clientlocallist">Lister depuis le navigateur</string>
+    <string name="dropboxsave">Enregistrer dans Dropbox</string>
+    <string name="dropboxload">Charger depuis Dropbox</string>
+    <string name="dropboxlist">Lister depuis Dropbox</string>
     <string name="clientsql">Génerer SQL</string>
+    <string name="downloadxml">Télécharger</string>
+    <string name="uploadxml">Téléverser</string>
     <string name="backendlabel">Méthode du serveur :</string>
     <string name="serversave">Enregistrer</string>
     <string name="quicksave">Enregistrer rapidement</string>

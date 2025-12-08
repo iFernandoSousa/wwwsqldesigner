@@ -54,12 +54,14 @@
     <string name="optionpatternnotice">%T = elsődleges tábla, %R = elsődleges kulcs, %t = idegen tábla</string>
     <string name="hide">Elrejtsem a kapcsolókat a rajztáblán?</string>
     <string name="vector">Kapcsolók finom kirajzolása (ha a böngésző lehetővé teszi)?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">Mező méretének megjelenítése a táblatervezésben?</string>
+    <string name="showtype">Mező adattípusának megjelenítése a táblatervezésben?</string>
+    <string name="shownull">NULL/NOT NULL megjelenítése a táblatervezésben?</string>
     <string name="style">Stílus</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
-
+    <string name="listmodels">Modellek listázása</string>
 
     <!-- keys -->
     <string name="tablekeys">Kulcsok</string>
@@ -81,9 +83,18 @@
     <string name="output">Bemenet / Kimenet</string>
     <string name="clientsave">XML mentése</string>
     <string name="clientload">XML beolvasása</string>
+    <string name="clientlocalsave">Mentés a böngészőben</string>
+    <string name="clientlocalload">Betöltés a böngészőből</string>
+    <string name="clientlocallist">Listázás a böngészőből</string>
+    <string name="dropboxsave">Mentés a Dropbox-ba</string>
+    <string name="dropboxload">Betöltés a Dropbox-ból</string>
+    <string name="dropboxlist">Listázás a Dropbox-ból</string>
     <string name="clientsql">SQL generálása</string>
+    <string name="downloadxml">Letöltés</string>
+    <string name="uploadxml">Feltöltés</string>
     <string name="backendlabel">Szerver végpont:</string>
     <string name="serversave">Mentés</string>
+    <string name="quicksave">Gyors mentés</string>
     <string name="serverload">Betöltés</string>
     <string name="serverlist">Tételek listázása</string>
     <string name="serverimport">Importálás adatbázisból</string>

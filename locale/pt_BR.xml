@@ -54,12 +54,14 @@
     <string name="optionpatternnotice">%T = tabela primária, %R = chave primária, %t = tabela estrangeira</string>
     <string name="hide">Esconder connectores na tela?</string>
     <string name="vector">Desenhar conectores suaves (se suportado pelo navegador)?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">Mostrar tamanho do campo no design da tabela?</string>
+    <string name="showtype">Mostrar tipo de dado do campo no design da tabela?</string>
+    <string name="shownull">Mostrar NULL/NOT NULL no design da tabela?</string>
     <string name="style">Estilo</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
-
+    <string name="listmodels">Listar Modelos</string>
 
     <!-- keys -->
     <string name="tablekeys">Chaves</string>
@@ -81,9 +83,18 @@
     <string name="output">Entrada / Saída</string>
     <string name="clientsave">Salvar XML</string>
     <string name="clientload">Carregar XML</string>
+    <string name="clientlocalsave">Salvar no Navegador</string>
+    <string name="clientlocalload">Carregar do Navegador</string>
+    <string name="clientlocallist">Listar do Navegador</string>
+    <string name="dropboxsave">Salvar no Dropbox</string>
+    <string name="dropboxload">Carregar do Dropbox</string>
+    <string name="dropboxlist">Listar do Dropbox</string>
     <string name="clientsql">Gerar SQL</string>
+    <string name="downloadxml">Baixar</string>
+    <string name="uploadxml">Enviar</string>
     <string name="backendlabel"> Parâmetros do Servidor:</string>
     <string name="serversave">Salvar</string>
+    <string name="quicksave">Salvamento Rápido</string>
     <string name="serverload">Carregar</string>
     <string name="serverlist">Listar itens</string>
     <string name="serverimport">Importar do BD</string>
@@ -100,6 +111,5 @@
     <!-- misc -->
     <string name="xmlerror">Erro de XML</string>
     <string name="docs">Documentação</string>
-
     <string name="autosave">Auto Save</string>
 </locale>

@@ -56,11 +56,12 @@
     <string name="vector">Draw smooth connectors (if supported by browser)?</string>
     <string name="showsize">Tablo tasarımında alan boyutunu gösterme?</string>
     <string name="showtype">Alan veri tipini tablo tasarımında göster?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Tablo tasarımında NULL/NOT NULL göster?</string>
     <string name="style">Stil</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Modelleri Listele</string>
 
     <!-- keys -->
     <string name="tablekeys">Anahtarlar</string>
@@ -89,6 +90,8 @@
     <string name="dropboxload">Dropbox Yükle</string>
     <string name="dropboxlist">Dropbox Listele</string>
     <string name="clientsql">SQL oluştur</string>
+    <string name="downloadxml">İndir</string>
+    <string name="uploadxml">Yükle</string>
     <string name="backendlabel">Sunucu Kısmı:</string>
     <string name="serversave">Kaydet</string>
     <string name="quicksave">Hızlı Kayıt</string>

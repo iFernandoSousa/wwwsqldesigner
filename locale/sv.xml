@@ -54,11 +54,14 @@
     <string name="optionpatternnotice">%T = primär tabell, %R = primär nycke, %t = främmande tabell</string>
     <string name="hide">Dölj anslutningar när du drar i tabellen?</string>
     <string name="vector">Rita mjuka anslutningar (om din webbläsare stöder det)?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">Visa fältstorlek i tabelldesign?</string>
+    <string name="showtype">Visa fältdatatyp i tabelldesign?</string>
+    <string name="shownull">Visa NULL/NOT NULL i tabelldesign?</string>
     <string name="style">Stil</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Lista Modeller</string>
 
     <!-- keys -->
     <string name="tablekeys">Nycklar</string>
@@ -80,9 +83,18 @@
     <string name="output">Input / Output</string>
     <string name="clientsave">Spara XML</string>
     <string name="clientload">Ladda XML</string>
+    <string name="clientlocalsave">Spara i Webbläsare</string>
+    <string name="clientlocalload">Ladda från Webbläsare</string>
+    <string name="clientlocallist">Lista från Webbläsare</string>
+    <string name="dropboxsave">Spara i Dropbox</string>
+    <string name="dropboxload">Ladda från Dropbox</string>
+    <string name="dropboxlist">Lista från Dropbox</string>
     <string name="clientsql">Generera SQL</string>
+    <string name="downloadxml">Ladda ner</string>
+    <string name="uploadxml">Ladda upp</string>
     <string name="backendlabel">Server backend:</string>
     <string name="serversave">Spara</string>
+    <string name="quicksave">Snabb Spara</string>
     <string name="serverload">Ladda</string>
     <string name="serverlist">Lista innehåll</string>
     <string name="serverimport">Importera från DB</string>

@@ -56,11 +56,12 @@
     <string name="vector">Рисовать сглаженные связи (если поддерживается браузером)?</string>
     <string name="showsize">Показывать размеры полей таблиц?</string>
     <string name="showtype">Показывать типы данных полей таблиц?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Показывать NULL/NOT NULL в схеме таблицы?</string>
     <string name="style">Стиль</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Список моделей</string>
 
     <!-- keys -->
     <string name="tablekeys">Ключи</string>
@@ -89,6 +90,8 @@
     <string name="dropboxload">Загрузить из Dropbox</string>
     <string name="dropboxlist">Получить список из Dropbox</string>
     <string name="clientsql">Генерировать SQL</string>
+    <string name="downloadxml">Скачать</string>
+    <string name="uploadxml">Загрузить</string>
     <string name="backendlabel">Серверные технологии:</string>
     <string name="serversave">Сохранить</string>
     <string name="quicksave">Быстрое сохранение</string>

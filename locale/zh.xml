@@ -4,6 +4,7 @@
     <string name="addtable">添加表</string>
     <string name="edittable">修改表</string>
     <string name="removetable">移除表</string>
+    <string name="removetables">移除多个表</string>
     <string name="aligntables">重组表格位置</string>
     <string name="aiorganize">Organize using AI</string>
     <string name="cleartables">删除所有表</string>
@@ -55,11 +56,12 @@
     <string name="vector">绘制平滑的连接 (如果浏览器支持)?</string>
     <string name="showsize">设计表格时显示字段大小?</string>
     <string name="showtype">设计表格时显示字段数据类型?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">设计表格时显示NULL/NOT NULL?</string>
     <string name="style">样式</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">列出模型</string>
 
     <!-- keys -->
     <string name="tablekeys">设置表键</string>
@@ -83,7 +85,15 @@
     <string name="output">输入 / 输出</string>
     <string name="clientsave">保存为XML</string>
     <string name="clientload">载入XML</string>
+    <string name="clientlocalsave">在浏览器中保存</string>
+    <string name="clientlocalload">从浏览器载入</string>
+    <string name="clientlocallist">从浏览器列出</string>
+    <string name="dropboxsave">保存到Dropbox</string>
+    <string name="dropboxload">从Dropbox载入</string>
+    <string name="dropboxlist">从Dropbox列出</string>
     <string name="clientsql">传化为数据库脚本</string>
+    <string name="downloadxml">下载</string>
+    <string name="uploadxml">上传</string>
     <string name="backendlabel">服务后台:</string>
     <string name="serversave">保存</string>
     <string name="serverload">载入</string>

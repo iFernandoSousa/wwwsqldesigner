@@ -56,11 +56,12 @@
     <string name="vector">Teken gekromde relaties (als de browser dit ondersteund)?</string>
     <string name="showsize">Toon veld omvang in tabelontwerp?</string>
     <string name="showtype">Toon veld type in tabelontwerp?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Toon NULL/NOT NULL in tabelontwerp?</string>
     <string name="style">Stijl</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Lijst Modellen</string>
 
     <!-- keys -->
     <string name="tablekeys">Sleutels</string>
@@ -84,7 +85,13 @@
     <string name="clientload">XML Laden</string>
     <string name="clientlocalsave">Opslaan in Browser</string>
     <string name="clientlocalload">Laden uit Browser</string>
+    <string name="clientlocallist">Lijst uit Browser</string>
+    <string name="dropboxsave">Opslaan in Dropbox</string>
+    <string name="dropboxload">Laden uit Dropbox</string>
+    <string name="dropboxlist">Lijst uit Dropbox</string>
     <string name="clientsql">Genereer SQL</string>
+    <string name="downloadxml">Downloaden</string>
+    <string name="uploadxml">Uploaden</string>
     <string name="backendlabel">Server:</string>
     <string name="serversave">Opslaan</string>
     <string name="quicksave">Snel opslaan</string>

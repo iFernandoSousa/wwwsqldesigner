@@ -56,11 +56,12 @@
     <string name="vector">¿Dibujar conectores suaves (si son soportados por el navegador)?</string>
     <string name="showsize">¿Mostrar tamaño del campo en el diseño de tabla?</string>
     <string name="showtype">¿Mostrar tipo de dato del campo en el diseño de tabla?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">¿Mostrar NULL/NOT NULL en el diseño de tabla?</string>
     <string name="style">Estilo</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Listar Modelos</string>
 
     <!-- keys -->
     <string name="tablekeys">Claves</string>
@@ -89,6 +90,8 @@
     <string name="dropboxload">Cargar desde Dropbox</string>
     <string name="dropboxlist">Listar desde Dropbox</string>
     <string name="clientsql">Generar SQL</string>
+    <string name="downloadxml">Descargar</string>
+    <string name="uploadxml">Subir</string>
     <string name="backendlabel">Servidor de fondo:</string>
     <string name="serversave">Guardar</string>
     <string name="quicksave">Guardar rápido</string>

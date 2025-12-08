@@ -56,11 +56,12 @@
     <string name="vector">Креслити плавні з'єднання (якщо підтримується переглядачем)?</string>
     <string name="showsize">Показувати розмір поля в дизайні таблиці?</string>
     <string name="showtype">Показувати тип даних поля в дизайні таблиці?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Показувати NULL/NOT NULL в дизайні таблиці?</string>
     <string name="style">Стиль</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Список моделей</string>
 
     <!-- keys -->
     <string name="tablekeys">Ключі</string>
@@ -88,7 +89,14 @@
     <string name="dropboxsave">Зберегти у Dropbox</string>
     <string name="dropboxload">Завантажити з Dropbox'а</string>
     <string name="dropboxlist">Список із Dropbox'а</string>
+    <string name="clientlocalload">Завантажити з переглядача</string>
+    <string name="clientlocallist">Список з переглядача</string>
+    <string name="dropboxsave">Зберегти у Dropbox</string>
+    <string name="dropboxload">Завантажити з Dropbox'а</string>
+    <string name="dropboxlist">Список із Dropbox'а</string>
     <string name="clientsql">Згенерувати SQL</string>
+    <string name="downloadxml">Завантажити</string>
+    <string name="uploadxml">Вивантажити</string>
     <string name="backendlabel">Серверна частина:</string>
     <string name="serversave">Зберегти</string>
     <string name="quicksave">Швидке збереження</string>

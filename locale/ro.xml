@@ -54,12 +54,14 @@
     <string name="optionpatternnotice">%T = Tabela primara, %R = Primary key, %t = Tabela cu Foreign key</string>
     <string name="hide">Ascunde conexiunile la mutarea tabelei?</string>
     <string name="vector">Deseneaza folosind "smooth connectors" (daca browserul suporta)?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="showsize">Afiseaza dimensiunea campului in design-ul tabelei?</string>
+    <string name="showtype">Afiseaza tipul de date al campului in design-ul tabelei?</string>
+    <string name="shownull">Afiseaza NULL/NOT NULL in design-ul tabelei?</string>
     <string name="style">Stil</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
-
+    <string name="listmodels">Lista Modele</string>
 
     <!-- keys -->
     <string name="tablekeys">Keys / Indexes</string>
@@ -81,9 +83,18 @@
     <string name="output">Input / Output</string>
     <string name="clientsave">Genereaza XML</string>
     <string name="clientload">Incarca din XML</string>
+    <string name="clientlocalsave">Salveaza in Browser</string>
+    <string name="clientlocalload">Incarca din Browser</string>
+    <string name="clientlocallist">Lista din Browser</string>
+    <string name="dropboxsave">Salveaza in Dropbox</string>
+    <string name="dropboxload">Incarca din Dropbox</string>
+    <string name="dropboxlist">Lista din Dropbox</string>
     <string name="clientsql">Genereaza SQL</string>
+    <string name="downloadxml">Descarca</string>
+    <string name="uploadxml">Incarca</string>
     <string name="backendlabel">Server backend:</string>
     <string name="serversave">Salveaza</string>
+    <string name="quicksave">Salvare Rapida</string>
     <string name="serverload">Incarca</string>
     <string name="serverlist">Lista de salvari</string>
     <string name="serverimport">Import tabele din baza de date</string>

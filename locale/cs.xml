@@ -56,11 +56,12 @@
     <string name="vector">Vykreslovat oblé spojovníky (pakliže to prohlížeč podporuje)?</string>
     <string name="showsize">Zobrazovat velikost polí v tabulce?</string>
     <string name="showtype">Zobrazovat datový typ polí v tabulce?</string>
-    <string name="shownull">Show NULL/NOT NULL in table design?</string>
+    <string name="shownull">Zobrazovat NULL/NOT NULL v návrhu tabulky?</string>
     <string name="style">Styl</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">Seznam modelů</string>
 
     <!-- keys -->
     <string name="tablekeys">Klíče</string>
@@ -84,7 +85,13 @@
     <string name="clientload">Načíst XML</string>
     <string name="clientlocalsave">Uložit v prohlížeči</string>
     <string name="clientlocalload">Načíst z prohlížeče</string>
+    <string name="clientlocallist">Vypsat z prohlížeče</string>
+    <string name="dropboxsave">Uložit do Dropboxu</string>
+    <string name="dropboxload">Načíst z Dropboxu</string>
+    <string name="dropboxlist">Vypsat z Dropboxu</string>
     <string name="clientsql">Generovat SQL</string>
+    <string name="downloadxml">Stáhnout</string>
+    <string name="uploadxml">Nahrát</string>
     <string name="backendlabel">Server backend:</string>
     <string name="serversave">Uložit</string>
     <string name="quicksave">Rychle uložit</string>
