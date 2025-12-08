@@ -207,6 +207,8 @@ SQL.AI.prototype.build = function() {
     // Sparkles Icon
     this.dom.btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 6 6.5 9.5 3 12l3.5 2.5L9 18l2.5-3.5L15 12l-3.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>';
     this.dom.btn.title = "Ask AI to create tables";
+    // Start hidden by default, will be shown if configured
+    this.dom.btn.classList.add('hidden');
     document.body.appendChild(this.dom.btn);
 
     // Overlay
@@ -270,6 +272,9 @@ SQL.AI.prototype.build = function() {
     // Autocomplete events
     OZ.Event.add(prompt, "input", this.handleInput.bind(this));
     OZ.Event.add(prompt, "keydown", this.handleKeydown.bind(this));
+    
+    // Update button visibility based on configuration
+    this.updateButtonVisibility();
 }
 
 SQL.AI.prototype.toggle = function() {
@@ -826,4 +831,33 @@ SQL.AI.prototype.getTableDimensions = function() {
         dimensions += table.getTitle() + ": " + width + "px × " + height + "px\n";
     }
     return dimensions;
+}
+
+SQL.AI.prototype.isConfigured = function() {
+    var key = this.owner.getOption("ai_apikey");
+    var model = this.owner.getOption("ai_agent");
+    return !!(key && key.trim() && model && model.trim());
+}
+
+SQL.AI.prototype.updateButtonVisibility = function() {
+    var isConfigured = this.isConfigured();
+    
+    // Update AI Input button visibility
+    if (this.dom.btn) {
+        if (isConfigured) {
+            this.dom.btn.classList.remove('hidden');
+        } else {
+            this.dom.btn.classList.add('hidden');
+        }
+    }
+    
+    // Update "Organize using AI" button visibility
+    if (this.owner.tableManager && this.owner.tableManager.dom && this.owner.tableManager.dom.aiorganize) {
+        var organizeBtn = this.owner.tableManager.dom.aiorganize;
+        if (isConfigured) {
+            organizeBtn.style.display = '';
+        } else {
+            organizeBtn.style.display = 'none';
+        }
+    }
 }

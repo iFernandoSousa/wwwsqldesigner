@@ -123,6 +123,10 @@ SQL.Options.prototype.build = function () {
     OZ.Event.add(this.dom.optionshowtype, "change", this.handleShowTypeChange.bind(this));
     OZ.Event.add(this.dom.optionshowsize, "change", this.handleShowSizeChange.bind(this));
     OZ.Event.add(this.dom.optionshownull, "change", this.handleShowNullChange.bind(this));
+    
+    // Add event listeners for AI configuration changes
+    OZ.Event.add(this.dom.optionaiapikey, "input", this.handleAIConfigChange.bind(this));
+    OZ.Event.add(this.dom.optionaiagent, "change", this.handleAIConfigChange.bind(this));
 
     this.dom.container.parentNode.removeChild(this.dom.container);
 };
@@ -250,6 +254,11 @@ SQL.Options.prototype.save = function () {
     this.owner.setOption("ai_agent", this.dom.optionaiagent.value);
     this.owner.setOption("ai_apikey", this.dom.optionaiapikey.value);
     this.owner.setOption("autosave", this.dom.optionautosave.checked ? "1" : "");
+    
+    // Update AI button visibility when options are saved
+    if (this.owner.ai && this.owner.ai.updateButtonVisibility) {
+        this.owner.ai.updateButtonVisibility();
+    }
 };
 
 SQL.Options.prototype.handleStyleChange = function () {
@@ -297,6 +306,21 @@ SQL.Options.prototype.handleShowNullChange = function () {
     this.owner.updateRowDisplayOptions();
 };
 
+SQL.Options.prototype.handleAIConfigChange = function () {
+    // Update AI button visibility when API key or model changes
+    if (this.owner.ai && this.owner.ai.updateButtonVisibility) {
+        // Temporarily update the options to check visibility
+        var oldKey = this.owner.getOption("ai_apikey");
+        var oldModel = this.owner.getOption("ai_agent");
+        this.owner.setOption("ai_apikey", this.dom.optionaiapikey.value);
+        this.owner.setOption("ai_agent", this.dom.optionaiagent.value);
+        this.owner.ai.updateButtonVisibility();
+        // Restore old values (they'll be saved when user clicks OK)
+        this.owner.setOption("ai_apikey", oldKey);
+        this.owner.setOption("ai_agent", oldModel);
+    }
+};
+
 SQL.Options.prototype.click = function () {
     this.owner.window.open(_("options"), this.dom.container, this.save);
     this.dom.optionsnap.value = this.owner.getOption("snap");
@@ -313,4 +337,9 @@ SQL.Options.prototype.click = function () {
     
     // Trigger update to set correct model if provider is already set
     this.updateModels();
+    
+    // Update AI button visibility when options dialog opens
+    if (this.owner.ai && this.owner.ai.updateButtonVisibility) {
+        this.owner.ai.updateButtonVisibility();
+    }
 };
