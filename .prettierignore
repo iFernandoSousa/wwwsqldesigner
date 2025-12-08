@@ -1,0 +1,9 @@
+node_modules/
+*.min.js
+*.min.css
+temp/
+backend/
+db/
+images/
+locale/
+

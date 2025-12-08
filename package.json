@@ -4,7 +4,11 @@
   "description": "WWW SQL Designer allows users to create database designs, which can be saved/loaded and exported to SQL scripts.",
   "main": "index.html",
   "scripts": {
-    "start": "http-server . -p 8080"
+    "start": "http-server . -p 8080",
+    "format": "prettier --write \"**/*.{js,json,html,css}\"",
+    "format:check": "prettier --check \"**/*.{js,json,html,css}\"",
+    "lint": "eslint \"js/**/*.js\"",
+    "lint:fix": "eslint \"js/**/*.js\" --fix"
   },
   "repository": {
     "type": "git",
@@ -20,7 +24,9 @@
   "author": "Ondrej Zara",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "eslint": "^8.57.0",
+    "http-server": "^14.1.1",
+    "prettier": "^3.0.0"
   }
 }
 
