@@ -79,5 +79,8 @@ var SQL = {
 };
 
 window.onbeforeunload = function (e) {
-    return ""; /* some browsers will show this text, some won't. */
+    if (SQL.Designer.isModified) {
+        return "Changes you made may not be saved.";
+    }
+    return undefined;
 };

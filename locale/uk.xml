@@ -108,4 +108,5 @@
     <string name="xmlerror">Помилка XML</string>
     <string name="docs">Документація</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

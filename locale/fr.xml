@@ -105,4 +105,5 @@
     <string name="xmlerror">Erreur XML</string>
     <string name="docs">Documentation</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

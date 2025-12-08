@@ -343,6 +343,7 @@ SQL.TableManager.prototype.keys = function (e) {
 SQL.TableManager.prototype.save = function () {
     this.selection[0].setTitle(this.dom.name.value);
     this.selection[0].setComment(this.dom.comment.value);
+    this.owner.flagModified();
 };
 
 SQL.TableManager.prototype.copy = function () {

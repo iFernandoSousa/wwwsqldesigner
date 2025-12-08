@@ -28,11 +28,23 @@ SQL.Designer = function () {
     }
 
     this.flag = 2;
+    this.isModified = false;
     this.requestLanguage();
     this.requestDB();
     this.applyStyle();
 };
 SQL.Designer.prototype = Object.create(SQL.Visual.prototype);
+
+SQL.Designer.prototype.flagModified = function() {
+    this.isModified = true;
+    if (this.io) {
+        this.io.checkAutoSave();
+    }
+};
+
+SQL.Designer.prototype.resetModified = function() {
+    this.isModified = false;
+};
 
 /* update area size */
 SQL.Designer.prototype.sync = function () {
@@ -182,6 +194,7 @@ SQL.Designer.prototype.addTable = function (name, x, y) {
     var t = new SQL.Table(this, name, x, y, max + 1);
     this.tables.push(t);
     this.dom.container.appendChild(t.dom.container);
+    this.flagModified();
     return t;
 };
 
@@ -194,11 +207,13 @@ SQL.Designer.prototype.removeTable = function (t) {
     }
     t.destroy();
     this.tables.splice(idx, 1);
+    this.flagModified();
 };
 
 SQL.Designer.prototype.addRelation = function (row1, row2) {
     var r = new SQL.Relation(this, row1, row2);
     this.relations.push(r);
+    this.flagModified();
     return r;
 };
 
@@ -209,6 +224,7 @@ SQL.Designer.prototype.removeRelation = function (r) {
     }
     r.destroy();
     this.relations.splice(idx, 1);
+    this.flagModified();
 };
 
 SQL.Designer.prototype.getCookie = function () {
@@ -263,6 +279,8 @@ SQL.Designer.prototype.getOption = function (name) {
             return true;
         case "style":
             return "material-inspired";
+        case "autosave":
+            return CONFIG.DEFAULT_AUTOSAVE ? "1" : "";
         default:
             return null;
     }
@@ -305,6 +323,7 @@ SQL.Designer.prototype.clearTables = function () {
         this.removeTable(this.tables[0]);
     }
     this.setTitle(false);
+    this.flagModified();
 };
 
 SQL.Designer.prototype.alignTables = function () {
@@ -335,6 +354,7 @@ SQL.Designer.prototype.alignTables = function () {
     }
 
     this.sync();
+    this.flagModified();
 };
 
 SQL.Designer.prototype.findNamedTable = function (name) {
@@ -419,6 +439,7 @@ SQL.Designer.prototype.fromXML = function (node) {
     }
 
     this.sync();
+    this.resetModified();
 };
 
 SQL.Designer.prototype.updateFromXML = function (node) {
@@ -465,6 +486,7 @@ SQL.Designer.prototype.updateFromXML = function (node) {
     }
 
     this.sync();
+    this.resetModified();
 };
 
 SQL.Designer.prototype.setTitle = function (t) {

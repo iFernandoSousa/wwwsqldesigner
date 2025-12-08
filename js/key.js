@@ -10,6 +10,7 @@ SQL.Key.prototype = Object.create(SQL.Visual.prototype);
 
 SQL.Key.prototype.setName = function (n) {
     this.name = n;
+    this.owner.owner.flagModified();
 };
 
 SQL.Key.prototype.getName = function () {
@@ -24,6 +25,7 @@ SQL.Key.prototype.setType = function (t) {
     for (var i = 0; i < this.rows.length; i++) {
         this.rows[i].redraw();
     }
+    this.owner.owner.flagModified();
 };
 
 SQL.Key.prototype.getType = function () {
@@ -36,6 +38,7 @@ SQL.Key.prototype.addRow = function (r) {
     }
     this.rows.push(r);
     r.addKey(this);
+    this.owner.owner.flagModified();
 };
 
 SQL.Key.prototype.removeRow = function (r) {
@@ -45,6 +48,7 @@ SQL.Key.prototype.removeRow = function (r) {
     }
     r.removeKey(this);
     this.rows.splice(idx, 1);
+    this.owner.owner.flagModified();
 };
 
 SQL.Key.prototype.destroy = function () {

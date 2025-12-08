@@ -103,4 +103,5 @@
     <string name="xmlerror">XML 错误</string>
     <string name="docs">文档</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

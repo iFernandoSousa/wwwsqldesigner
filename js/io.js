@@ -3,6 +3,8 @@ SQL.IO = function (owner) {
     this._name = ""; /* last used name with server load/save */
     this.lastUsedName =
         ""; /* last used name with local storage or dropbox load/save */
+    this.lastSaveType = "client"; /* client or server */
+    this.autoSaveTimer = null;
     this.dom = {
         container: OZ.$("io"),
     };
@@ -188,7 +190,7 @@ SQL.IO.prototype.promptName = function (title, suffix) {
     return name;
 };
 
-SQL.IO.prototype.clientlocalsave = function () {
+SQL.IO.prototype.clientlocalsave = function (silent) {
     if (!window.localStorage) {
         alert("Sorry, your browser does not seem to support localStorage.");
         return;
@@ -203,7 +205,13 @@ SQL.IO.prototype.clientlocalsave = function () {
         return;
     }
 
-    var key = this.promptName("serversaveprompt");
+    var key;
+    if (silent === true) {
+        key = this.owner.getOption("lastUsedName") || this.lastUsedName || "default";
+    } else {
+        key = this.promptName("serversaveprompt");
+    }
+    
     if (!key) {
         return;
     }
@@ -218,6 +226,8 @@ SQL.IO.prototype.clientlocalsave = function () {
         if (localStorage.getItem(key) != xml) {
             throw new Error("Content verification failed");
         }
+        this.lastSaveType = "client";
+        this.owner.resetModified();
     } catch (e) {
         alert(
             "Error saving database structure to localStorage! (" +
@@ -410,6 +420,7 @@ SQL.IO.prototype.dropboxsave = function () {
                 filename + " " + _("was saved to Dropbox"),
                 200
             );
+            sql_io.owner.resetModified();
         });
     });
 };
@@ -510,6 +521,7 @@ SQL.IO.prototype.serversave = function (e, keyword) {
         data: xml,
         headers: h,
     });
+    this.lastSaveType = "server";
 };
 
 SQL.IO.prototype.quicksave = function (e) {
@@ -579,6 +591,7 @@ SQL.IO.prototype.check = function (code) {
 SQL.IO.prototype.saveresponse = function (data, code) {
     this.owner.window.hideThrobber();
     this.check(code);
+    this.owner.resetModified();
 };
 
 SQL.IO.prototype.loadresponse = function (data, code) {
@@ -616,5 +629,35 @@ SQL.IO.prototype.press = function (e) {
             }
             this.quicksave(e);
             break;
+    }
+};
+
+SQL.IO.prototype.checkAutoSave = function () {
+    if (this.owner.getOption("autosave") != "1") {
+        return;
+    }
+    if (this.autoSaveTimer) {
+        clearTimeout(this.autoSaveTimer);
+    }
+    this.autoSaveTimer = setTimeout(this.performAutoSave.bind(this), 3000);
+};
+
+SQL.IO.prototype.performAutoSave = function () {
+    if (this.owner.getOption("autosave") != "1") {
+        return;
+    }
+    if (!this.owner.isModified) {
+        return;
+    }
+    
+    // Determine save method
+    if (this.lastSaveType == "server") {
+        // Use existing name logic from serversave or similar
+        // We use this._name which tracks server save name
+        if (this._name) {
+            this.serversave(null, this._name);
+        }
+    } else {
+        this.clientlocalsave(true); // true = silent/autosave
     }
 };

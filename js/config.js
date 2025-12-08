@@ -104,6 +104,8 @@ var CONFIG = {
     ],
     DEFAULT_AI_PROVIDER: "Google Gemini",
 
+    DEFAULT_AUTOSAVE: false,
+
     // Default models if API list fails
     AI_MODELS: {
         "Google Gemini": ["gemini-1.5-flash", "gemini-1.5-pro"],

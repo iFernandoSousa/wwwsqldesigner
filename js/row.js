@@ -141,6 +141,7 @@ SQL.Row.prototype.up = function () {
     r.splice(idx, 1);
     r.splice(idx - 1, 0, this);
     this.redraw();
+    this.owner.owner.flagModified();
 };
 
 SQL.Row.prototype.down = function () {
@@ -157,6 +158,7 @@ SQL.Row.prototype.down = function () {
     r.splice(idx, 1);
     r.splice(idx + 1, 0, this);
     this.redraw();
+    this.owner.owner.flagModified();
 };
 
 SQL.Row.prototype.buildEdit = function () {
@@ -262,6 +264,7 @@ SQL.Row.prototype.collapse = function () {
 
     this.update(data);
     this.setTitle(this.dom.name.value);
+    this.owner.owner.flagModified();
 };
 
 SQL.Row.prototype.load = function () {

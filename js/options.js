@@ -24,6 +24,7 @@ SQL.Options.prototype.build = function () {
     this.dom.optionaiagent = OZ.$("optionaiagent");
     this.dom.optionaiprovider = OZ.$("optionaiprovider");
     this.dom.optionaiapikey = OZ.$("optionaiapikey");
+    this.dom.optionautosave = OZ.$("optionautosave");
     this.dom.btnlistmodels = OZ.$("btnlistmodels");
 
     var ids = [
@@ -41,7 +42,8 @@ SQL.Options.prototype.build = function () {
         "optionsnotice",
         "aiagent",
         "aiprovider",
-        "aiapikey"
+        "aiapikey",
+        "autosave"
     ];
     for (var i = 0; i < ids.length; i++) {
         var id = ids[i];
@@ -232,6 +234,7 @@ SQL.Options.prototype.save = function () {
     this.owner.setOption("ai_provider", this.dom.optionaiprovider.value);
     this.owner.setOption("ai_agent", this.dom.optionaiagent.value);
     this.owner.setOption("ai_apikey", this.dom.optionaiapikey.value);
+    this.owner.setOption("autosave", this.dom.optionautosave.checked ? "1" : "");
 };
 
 SQL.Options.prototype.click = function () {
@@ -245,6 +248,7 @@ SQL.Options.prototype.click = function () {
     this.dom.optionaiprovider.value = this.owner.getOption("ai_provider") || "";
     this.dom.optionaiagent.value = this.owner.getOption("ai_agent") || "";
     this.dom.optionaiapikey.value = this.owner.getOption("ai_apikey") || "";
+    this.dom.optionautosave.checked = this.owner.getOption("autosave") == "1";
     
     // Trigger update to set correct model if provider is already set
     this.updateModels();

@@ -100,4 +100,5 @@
     <string name="xmlerror">Eroare XML</string>
     <string name="docs">Documentatie</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

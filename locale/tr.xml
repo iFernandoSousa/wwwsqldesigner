@@ -108,4 +108,5 @@
     <string name="xmlerror">XML hatası</string>
     <string name="docs">Belgeleme</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

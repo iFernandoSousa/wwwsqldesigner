@@ -99,4 +99,5 @@
     <string name="xmlerror">خطأ في نموذح XML</string>
     <string name="docs">التوثيق</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

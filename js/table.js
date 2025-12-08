@@ -69,6 +69,7 @@ SQL.Table.prototype.setTitle = function (t) {
         }
     }
     SQL.Visual.prototype.setTitle.apply(this, [t]);
+    this.owner.flagModified();
 };
 
 SQL.Table.prototype.getRelations = function () {
@@ -144,6 +145,7 @@ SQL.Table.prototype.addRow = function (title, data) {
     this.rows.push(r);
     this.dom.content.appendChild(r.dom.container);
     this.redraw();
+    this.owner.flagModified();
     return r;
 };
 
@@ -155,11 +157,13 @@ SQL.Table.prototype.removeRow = function (r) {
     r.destroy();
     this.rows.splice(idx, 1);
     this.redraw();
+    this.owner.flagModified();
 };
 
 SQL.Table.prototype.addKey = function (name) {
     var k = new SQL.Key(this, name);
     this.keys.push(k);
+    this.owner.flagModified();
     return k;
 };
 
@@ -170,6 +174,7 @@ SQL.Table.prototype.removeKey = function (k) {
     }
     k.destroy();
     this.keys.splice(idx, 1);
+    this.owner.flagModified();
 };
 
 SQL.Table.prototype.redraw = function () {
@@ -384,6 +389,7 @@ SQL.Table.prototype.up = function (e) {
     OZ.Event.remove(this.documentMove);
     OZ.Event.remove(this.documentUp);
     this.owner.sync();
+    this.owner.flagModified();
 };
 
 SQL.Table.prototype.destroy = function () {

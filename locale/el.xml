@@ -100,4 +100,5 @@
     <string name="xmlerror">Σφάλμα XML</string>
     <string name="docs">Οδηγίες</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>

@@ -317,6 +317,7 @@ SQL.RowManager.prototype.paste = function () {
     // Select the new row
     this.select(newRow);
     newRow.expand();
+    this.owner.flagModified();
 };
 
 SQL.RowManager.prototype.edit = function (e) {

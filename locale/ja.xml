@@ -104,4 +104,5 @@
     <string name="xmlerror">XMLエラー</string>
     <string name="docs">ドキュメント</string>
 
+    <string name="autosave">Auto Save</string>
 </locale>
