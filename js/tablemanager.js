@@ -62,6 +62,18 @@ SQL.TableManager = function (owner) {
     OZ.Event.add(document, "keydown", this.press.bind(this));
 
     this.dom.container.parentNode.removeChild(this.dom.container);
+    this.updateButtons();
+};
+
+SQL.TableManager.prototype.updateButtons = function() {
+    var hasTables = this.owner.tables.length > 0;
+    var ids = ["aligntables", "aiorganize", "cleartables"];
+    for (var i = 0; i < ids.length; i++) {
+        var btn = this.dom[ids[i]];
+        if (btn) {
+            btn.disabled = !hasTables;
+        }
+    }
 };
 
 SQL.TableManager.prototype.addRow = function (e) {

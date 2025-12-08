@@ -195,6 +195,7 @@ SQL.Designer.prototype.addTable = function (name, x, y) {
     this.tables.push(t);
     this.dom.container.appendChild(t.dom.container);
     this.flagModified();
+    this.tableManager.updateButtons();
     return t;
 };
 
@@ -208,6 +209,7 @@ SQL.Designer.prototype.removeTable = function (t) {
     t.destroy();
     this.tables.splice(idx, 1);
     this.flagModified();
+    this.tableManager.updateButtons();
 };
 
 SQL.Designer.prototype.addRelation = function (row1, row2) {
