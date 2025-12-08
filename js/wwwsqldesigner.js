@@ -199,18 +199,21 @@ SQL.Designer.prototype.sync = function () {
     }
 };
 
-SQL.Designer.prototype.requestLanguage = function () {
+SQL.Designer.prototype.requestLanguage = function (callback) {
     /* get locale file */
     var lang = this.getOption("locale");
     var bp = this.getOption("staticpath");
     var url = bp + "locale/" + lang + ".xml";
-    OZ.Request(url, this.languageResponse.bind(this), {
+    var self = this;
+    OZ.Request(url, function(xmlDoc) {
+        self.languageResponse(xmlDoc, callback);
+    }, {
         method: "get",
         xml: true,
     });
 };
 
-SQL.Designer.prototype.languageResponse = function (xmlDoc) {
+SQL.Designer.prototype.languageResponse = function (xmlDoc, callback) {
     if (xmlDoc) {
         var strings = xmlDoc.getElementsByTagName("string");
         for (var i = 0; i < strings.length; i++) {
@@ -219,24 +222,42 @@ SQL.Designer.prototype.languageResponse = function (xmlDoc) {
             window.LOCALE[n] = v;
         }
     }
+    // If callback provided, this is a dynamic update (not initial load)
+    if (callback) {
+        callback();
+        return;
+    }
+    // Otherwise, this is initial load
     this.flag--;
     if (!this.flag) {
         this.init2();
     }
 };
 
-SQL.Designer.prototype.requestDB = function () {
+SQL.Designer.prototype.requestDB = function (callback) {
     /* get datatypes file */
     var db = this.getOption("db");
     var bp = this.getOption("staticpath");
     var url = bp + "db/" + db + "/datatypes.xml";
-    OZ.Request(url, this.dbResponse.bind(this), { method: "get", xml: true });
+    var self = this;
+    OZ.Request(url, function(xmlDoc) {
+        self.dbResponse(xmlDoc, callback);
+    }, { method: "get", xml: true });
 };
 
-SQL.Designer.prototype.dbResponse = function (xmlDoc) {
+SQL.Designer.prototype.dbResponse = function (xmlDoc, callback) {
     if (xmlDoc) {
         window.DATATYPES = xmlDoc.documentElement;
+        // Reset type index caches since datatypes changed
+        this.typeIndex = false;
+        this.fkTypeFor = false;
     }
+    // If callback provided, this is a dynamic update (not initial load)
+    if (callback) {
+        callback();
+        return;
+    }
+    // Otherwise, this is initial load
     this.flag--;
     if (!this.flag) {
         this.init2();
@@ -256,6 +277,213 @@ SQL.Designer.prototype.applyStyle = function () {
             link_elms[i].disabled = true;
             if (link_elms[i].getAttribute("title") == style)
                 link_elms[i].disabled = false;
+        }
+    }
+};
+
+SQL.Designer.prototype.updateLocaleUI = function () {
+    /* update all UI elements that use translations */
+    if (!this.options || !this.tableManager || !this.io) {
+        return; // Not fully initialized yet
+    }
+    
+    // Update options button
+    if (this.options.dom && this.options.dom.btn) {
+        this.options.dom.btn.value = _("options");
+    }
+    
+    // Update options dialog labels (if dialog is currently open)
+    if (this.window && this.window.state && this.window.dom && this.window.dom.content) {
+        var ids = [
+            "language",
+            "db",
+            "snap",
+            "pattern",
+            "style",
+            "hide",
+            "vector",
+            "showsize",
+            "showtype",
+            "optionsnapnotice",
+            "optionpatternnotice",
+            "optionsnotice",
+            "autosave"
+        ];
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i];
+            var elm = OZ.$(id);
+            if (elm && id !== "aiagent" && id !== "aiapikey" && id !== "aiprovider") {
+                elm.innerHTML = _(id);
+            }
+        }
+    }
+    
+    // Update table manager buttons and labels
+    if (this.tableManager.dom) {
+        var tableIds = [
+            "addtable",
+            "removetable",
+            "aligntables",
+            "aiorganize",
+            "cleartables",
+            "addrow",
+            "edittable",
+            "tablekeys",
+        ];
+        for (var i = 0; i < tableIds.length; i++) {
+            var id = tableIds[i];
+            if (this.tableManager.dom[id]) {
+                this.tableManager.dom[id].value = _(id);
+            }
+        }
+        
+        var labelIds = ["tablenamelabel", "tablecommentlabel"];
+        for (var i = 0; i < labelIds.length; i++) {
+            var id = labelIds[i];
+            var elm = OZ.$(id);
+            if (elm) {
+                elm.innerHTML = _(id);
+            }
+        }
+        
+        // Update remove table button text based on selection
+        this.tableManager.processSelection();
+    }
+    
+    // Update row manager buttons
+    if (this.rowManager && this.rowManager.dom) {
+        var rowIds = [
+            "editrow",
+            "removerow",
+            "uprow",
+            "downrow",
+            "foreigncreate",
+            "foreignconnect",
+            "foreigndisconnect",
+        ];
+        for (var i = 0; i < rowIds.length; i++) {
+            var id = rowIds[i];
+            if (this.rowManager.dom[id]) {
+                this.rowManager.dom[id].value = _(id);
+            }
+        }
+        this.rowManager.redraw();
+    }
+    
+    // Update IO buttons and labels
+    if (this.io && this.io.dom) {
+        var ioIds = [
+            "saveload",
+            "clientlocalsave",
+            "clientsave",
+            "clientlocalload",
+            "clientlocallist",
+            "clientload",
+            "clientnew",
+            "clientsql",
+            "dropboxsave",
+            "dropboxload",
+            "dropboxlist",
+            "quicksave",
+            "serversave",
+            "serverload",
+            "serverlist",
+            "serverimport",
+        ];
+        for (var i = 0; i < ioIds.length; i++) {
+            var id = ioIds[i];
+            if (this.io.dom[id]) {
+                var value = _(id);
+                if (id === "quicksave") {
+                    value += " (F2)";
+                }
+                this.io.dom[id].value = value;
+            }
+        }
+        
+        var ioLabelIds = ["client", "server", "output", "backendlabel"];
+        for (var i = 0; i < ioLabelIds.length; i++) {
+            var id = ioLabelIds[i];
+            var elm = OZ.$(id);
+            if (elm) {
+                elm.innerHTML = _(id);
+            }
+        }
+    }
+    
+    // Update docs button
+    var docsElm = OZ.$("docs");
+    if (docsElm) {
+        docsElm.value = _("docs");
+    }
+    
+    // Update window buttons
+    if (this.window && this.window.dom) {
+        if (this.window.dom.ok) {
+            this.window.dom.ok.value = _("windowok");
+        }
+        if (this.window.dom.cancel) {
+            this.window.dom.cancel.value = _("windowcancel");
+        }
+    }
+};
+
+SQL.Designer.prototype.updateDatatypesUI = function () {
+    /* update all tables and rows to reflect new datatypes */
+    if (!this.tables) {
+        return; // Not initialized yet
+    }
+    
+    // Re-render all tables and rows
+    for (var i = 0; i < this.tables.length; i++) {
+        var table = this.tables[i];
+        
+        // Update all rows in the table
+        for (var j = 0; j < table.rows.length; j++) {
+            var row = table.rows[j];
+            
+            // If row is expanded, rebuild the type select dropdown
+            if (row.expanded && row.dom && row.dom.type) {
+                var currentType = row.data.type;
+                // Ensure type index is valid for new datatypes
+                var typeCount = window.DATATYPES ? window.DATATYPES.getElementsByTagName("type").length : 0;
+                if (typeCount > 0 && currentType >= typeCount) {
+                    // Type index is out of bounds, use first available type
+                    currentType = 0;
+                    row.data.type = 0;
+                }
+                // Rebuild the type select with new datatypes
+                var parent = row.dom.type.parentNode;
+                var newTypeSelect = row.buildTypeSelect(currentType);
+                parent.replaceChild(newTypeSelect, row.dom.type);
+                row.dom.type = newTypeSelect;
+            }
+            
+            // Redraw the row to update type hints and colors
+            row.redraw();
+        }
+        
+        // Redraw the table
+        table.redraw();
+    }
+    
+    // Update relations to reflect new colors if needed
+    for (var i = 0; i < this.relations.length; i++) {
+        this.relations[i].redraw();
+    }
+};
+
+SQL.Designer.prototype.updateRowDisplayOptions = function () {
+    /* update all rows to reflect showtype and showsize option changes */
+    if (!this.tables) {
+        return; // Not initialized yet
+    }
+    
+    // Redraw all rows to update type hints
+    for (var i = 0; i < this.tables.length; i++) {
+        var table = this.tables[i];
+        for (var j = 0; j < table.rows.length; j++) {
+            table.rows[j].redraw();
         }
     }
 };

@@ -113,6 +113,13 @@ SQL.Options.prototype.build = function () {
     OZ.Event.add(this.dom.btnlistmodels, "click", this.listModels.bind(this));
     OZ.Event.add(this.dom.optionaiprovider, "change", this.updateModels.bind(this));
 
+    // Add change event listeners for auto-refresh
+    OZ.Event.add(this.dom.optionlocale, "change", this.handleLocaleChange.bind(this));
+    OZ.Event.add(this.dom.optiondb, "change", this.handleDBChange.bind(this));
+    OZ.Event.add(this.dom.optionstyle, "change", this.handleStyleChange.bind(this));
+    OZ.Event.add(this.dom.optionshowtype, "change", this.handleShowTypeChange.bind(this));
+    OZ.Event.add(this.dom.optionshowsize, "change", this.handleShowSizeChange.bind(this));
+
     this.dom.container.parentNode.removeChild(this.dom.container);
 };
 
@@ -235,6 +242,44 @@ SQL.Options.prototype.save = function () {
     this.owner.setOption("ai_agent", this.dom.optionaiagent.value);
     this.owner.setOption("ai_apikey", this.dom.optionaiapikey.value);
     this.owner.setOption("autosave", this.dom.optionautosave.checked ? "1" : "");
+};
+
+SQL.Options.prototype.handleStyleChange = function () {
+    var newStyle = this.dom.optionstyle.value;
+    this.owner.setOption("style", newStyle);
+    this.owner.applyStyle();
+};
+
+SQL.Options.prototype.handleLocaleChange = function () {
+    var newLocale = this.dom.optionlocale.value;
+    this.owner.setOption("locale", newLocale);
+    // Request new locale and update UI when loaded
+    this.owner.requestLanguage(function() {
+        this.owner.updateLocaleUI();
+    }.bind(this));
+};
+
+SQL.Options.prototype.handleDBChange = function () {
+    var newDB = this.dom.optiondb.value;
+    this.owner.setOption("db", newDB);
+    // Request new datatypes and update UI when loaded
+    this.owner.requestDB(function() {
+        this.owner.updateDatatypesUI();
+    }.bind(this));
+};
+
+SQL.Options.prototype.handleShowTypeChange = function () {
+    var showType = this.dom.optionshowtype.checked ? "1" : "";
+    this.owner.setOption("showtype", showType);
+    // Redraw all rows to reflect the change
+    this.owner.updateRowDisplayOptions();
+};
+
+SQL.Options.prototype.handleShowSizeChange = function () {
+    var showSize = this.dom.optionshowsize.checked ? "1" : "";
+    this.owner.setOption("showsize", showSize);
+    // Redraw all rows to reflect the change
+    this.owner.updateRowDisplayOptions();
 };
 
 SQL.Options.prototype.click = function () {
