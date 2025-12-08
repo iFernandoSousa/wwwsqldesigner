@@ -200,6 +200,9 @@ SQL.IO.prototype.clientlocalsave = function () {
 
     try {
         localStorage.setItem(key, xml);
+        // Save the key as last used project
+        localStorage.setItem("wwwsqldesigner_last_project", key);
+
         if (localStorage.getItem(key) != xml) {
             throw new Error("Content verification failed");
         }

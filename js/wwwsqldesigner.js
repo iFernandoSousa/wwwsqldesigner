@@ -127,6 +127,29 @@ SQL.Designer.prototype.init2 = function () {
     this.window = new SQL.Window(this);
     this.ai = new SQL.AI(this);
 
+    // Try to load last project from localStorage
+    if (window.localStorage) {
+        var lastKey = localStorage.getItem("wwwsqldesigner_last_project");
+        if (lastKey) {
+             try {
+                var xml = localStorage.getItem(lastKey);
+                if (xml) {
+                     // Wait for other initializations (datatypes etc)
+                     var self = this;
+                     setTimeout(function() {
+                         self.io.fromXMLText(xml);
+                         // Also set the lastUsedName for next save
+                         var name = lastKey.replace("wwwsqldesigner_databases_", "");
+                         self.setOption("lastUsedName", name);
+                         self.io.lastUsedName = name;
+                     }, 500);
+                }
+            } catch(e) {
+                console.error("Failed to auto-load last project:", e);
+            }
+        }
+    }
+
     this.sync();
 
     OZ.$("docs").value = _("docs");
