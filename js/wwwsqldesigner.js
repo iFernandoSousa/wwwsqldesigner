@@ -10,12 +10,19 @@ SQL.Designer = function () {
     new SQL.Toggle(OZ.$("toggle"));
 
     this.dom.container = OZ.$("area");
-    this.minSize = [
-        this.dom.container.offsetWidth,
-        this.dom.container.offsetHeight,
-    ];
+    
+    // Set default size to 100% of viewport dimensions
+    var viewport = OZ.DOM.win();
+    var defaultWidth = Math.floor(viewport[0] * 1.0);
+    var defaultHeight = Math.floor(viewport[1] * 1.0);
+    
+    this.minSize = [defaultWidth, defaultHeight];
     this.width = this.minSize[0];
     this.height = this.minSize[1];
+    
+    // Update DOM container size immediately
+    this.dom.container.style.width = this.width + "px";
+    this.dom.container.style.height = this.height + "px";
 
     this.typeIndex = false;
     this.fkTypeFor = false;
@@ -108,6 +115,73 @@ SQL.Designer.prototype.sync = function () {
     if (needsTopExpansion) {
         // Expand from origin - just increase height, keeping origin at 0,0
         h += EXPANSION_AMOUNT;
+    }
+
+    // Auto-shrink logic: shrink when tables are far from edges
+    var SHRINK_AMOUNT = 500; // pixels to shrink when triggered
+    
+    // Calculate absolute minimum size (larger of table positions or original minSize)
+    // This is the smallest we can shrink to - never below table positions or original size
+    var absoluteMinWidth = Math.max(w, this.minSize[0]);
+    var absoluteMinHeight = Math.max(h, this.minSize[1]);
+    
+    // Use expanded size (w, h) for shrink detection after expansion
+    var expandedWidth = w;
+    var expandedHeight = h;
+    
+    // Check if all tables are far from edges (for shrinking)
+    // Check against the expanded size to see if we can shrink
+    var allTablesFarFromRight = true;
+    var allTablesFarFromBottom = true;
+    var allTablesFarFromLeft = true;
+    var allTablesFarFromTop = true;
+    
+    if (this.tables.length > 0) {
+        for (var i = 0; i < this.tables.length; i++) {
+            var t = this.tables[i];
+            
+            // Check if any table is near right edge (using expanded width)
+            if (t.x + t.width >= expandedWidth - EDGE_THRESHOLD) {
+                allTablesFarFromRight = false;
+            }
+            
+            // Check if any table is near bottom edge (using expanded height)
+            if (t.y + t.height >= expandedHeight - EDGE_THRESHOLD) {
+                allTablesFarFromBottom = false;
+            }
+            
+            // Check if any table is near left edge
+            if (t.x <= EDGE_THRESHOLD) {
+                allTablesFarFromLeft = false;
+            }
+            
+            // Check if any table is near top edge
+            if (t.y <= EDGE_THRESHOLD) {
+                allTablesFarFromTop = false;
+            }
+        }
+    } else {
+        // No tables, shrink back to original size
+        allTablesFarFromRight = true;
+        allTablesFarFromBottom = true;
+        allTablesFarFromLeft = true;
+        allTablesFarFromTop = true;
+    }
+    
+    // Apply shrinking (shrink back to absolute minimum when tables are far from edges)
+    if (allTablesFarFromRight && expandedWidth > absoluteMinWidth) {
+        w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+    }
+    if (allTablesFarFromBottom && expandedHeight > absoluteMinHeight) {
+        h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
+    }
+    if (allTablesFarFromLeft && expandedWidth > absoluteMinWidth) {
+        // Shrink from right - reduce width, keeping origin at 0,0
+        w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+    }
+    if (allTablesFarFromTop && expandedHeight > absoluteMinHeight) {
+        // Shrink from bottom - reduce height, keeping origin at 0,0
+        h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
     }
 
     this.width = w;
