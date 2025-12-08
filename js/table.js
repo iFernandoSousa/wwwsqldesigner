@@ -262,10 +262,14 @@ SQL.Table.prototype.down = function (e) {
     var n = t.active.length;
     t.x = new Array(n);
     t.y = new Array(n);
+    var zoomFactor = this.owner.zoom ? this.owner.zoom.getZoomFactor() : 1;
+    var scroll = OZ.DOM.scroll();
     for (var i = 0; i < n; i++) {
-        /* position relative to mouse cursor */
-        t.x[i] = t.active[i].x - event.clientX;
-        t.y[i] = t.active[i].y - event.clientY;
+        /* position relative to mouse cursor - account for zoom */
+        var clientX = (event.clientX + scroll[0]) / zoomFactor;
+        var clientY = (event.clientY + scroll[1]) / zoomFactor;
+        t.x[i] = t.active[i].x - clientX;
+        t.y[i] = t.active[i].y - clientY;
     }
 
     if (this.owner.getOption("hide")) {
@@ -367,9 +371,14 @@ SQL.Table.prototype.move = function (e) {
         var event = e;
     }
 
+    var zoomFactor = this.owner.zoom ? this.owner.zoom.getZoomFactor() : 1;
+    var scroll = OZ.DOM.scroll();
     for (var i = 0; i < t.active.length; i++) {
-        var x = t.x[i] + event.clientX;
-        var y = t.y[i] + event.clientY;
+        /* account for zoom when calculating position */
+        var clientX = (event.clientX + scroll[0]) / zoomFactor;
+        var clientY = (event.clientY + scroll[1]) / zoomFactor;
+        var x = t.x[i] + clientX;
+        var y = t.y[i] + clientY;
         x = Math.max(x, 0);
         y = Math.max(y, 0);
         t.active[i].moveTo(x, y);

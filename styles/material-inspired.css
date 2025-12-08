@@ -272,6 +272,66 @@ label, input, select {
     background-image: url(../images/down_2_white.png);
 }
 
+/* Zoom Controls */
+
+#zoomcontrols {
+    position: fixed;
+    right: 110px;
+    bottom: 5px;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    opacity: 0.9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24);
+    padding: 4px;
+    border-radius: 2px;
+    gap: 4px;
+}
+
+.zoom-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    color: rgba(0, 0, 0, .87);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.zoom-btn:hover {
+    background-color: rgba(0, 0, 0, .08);
+}
+
+.zoom-btn:active {
+    background-color: rgba(0, 0, 0, .12);
+}
+
+.zoom-input {
+    width: 50px;
+    height: 28px;
+    border: 1px solid rgba(0, 0, 0, .26);
+    border-radius: 2px;
+    padding: 0 4px;
+    text-align: center;
+    font-size: 12px;
+    font-family: verdana, sans-serif;
+    background-color: #fff;
+    color: rgba(0, 0, 0, .87);
+}
+
+.zoom-input:focus {
+    outline: none;
+    border-color: #2196F3;
+    border-width: 2px;
+}
+
 /* Minimap */
 
 #minimap {

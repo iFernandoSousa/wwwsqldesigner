@@ -271,6 +271,7 @@ SQL.Designer.prototype.init2 = function () {
     this.options = new SQL.Options(this);
     this.window = new SQL.Window(this);
     this.ai = new SQL.AI(this);
+    this.zoom = new SQL.Zoom(this);
 
     // Try to load last project from localStorage
     if (window.localStorage) {
@@ -416,6 +417,8 @@ SQL.Designer.prototype.getOption = function (name) {
             return "material-inspired";
         case "autosave":
             return CONFIG.DEFAULT_AUTOSAVE ? "1" : "";
+        case "zoom":
+            return 100;
         default:
             return null;
     }

@@ -184,11 +184,12 @@ SQL.TableManager.prototype.click = function (e) {
     
     var newtable = false;
     if (this.adding) {
-        // Store the click position for table creation
+        // Store the click position for table creation - account for zoom
         var scroll = OZ.DOM.scroll();
+        var zoomFactor = this.owner.zoom ? this.owner.zoom.getZoomFactor() : 1;
         this.pendingTablePosition = {
-            x: e.clientX + scroll[0],
-            y: e.clientY + scroll[1]
+            x: (e.clientX + scroll[0]) / zoomFactor,
+            y: (e.clientY + scroll[1]) / zoomFactor
         };
         
         // Show the popup first, don't create table yet
