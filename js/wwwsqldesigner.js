@@ -36,6 +36,22 @@ SQL.Designer = function () {
 
   this.flag = 2;
   this.isModified = false;
+  
+  // Add window resize handler to update minSize and sync area
+  var self = this;
+  this.handleResize = function() {
+    var viewport = OZ.DOM.win();
+    // Update minSize to always be at least the current viewport size
+    self.minSize[0] = Math.max(self.minSize[0], viewport[0]);
+    self.minSize[1] = Math.max(self.minSize[1], viewport[1]);
+    // Sync to ensure area covers the viewport
+    self.sync();
+  };
+  OZ.Event.add(window, "resize", this.handleResize);
+  
+  // Note: We don't add a scroll handler to expand the area automatically
+  // The area only expands when tables are moved near edges, not when scrolling
+  
   this.requestLanguage();
   this.requestDB();
   this.applyStyle();
@@ -55,13 +71,25 @@ SQL.Designer.prototype.resetModified = function () {
 
 /* update area size */
 SQL.Designer.prototype.sync = function () {
-  var w = this.minSize[0];
-  var h = this.minSize[1];
+  // Always ensure area is at least as large as the current viewport
+  // This prevents white space on initial load, but we don't expand based on scroll position
+  var viewport = OZ.DOM.win();
+  var minViewportWidth = viewport[0];
+  var minViewportHeight = viewport[1];
+  
+  // Start with the larger of minSize or current viewport (but not scroll position)
+  var w = Math.max(this.minSize[0], minViewportWidth);
+  var h = Math.max(this.minSize[1], minViewportHeight);
+  
   for (var i = 0; i < this.tables.length; i++) {
     var t = this.tables[i];
     w = Math.max(w, t.x + t.width);
     h = Math.max(h, t.y + t.height);
   }
+  
+  // Ensure final size is at least viewport size to prevent white space on initial load
+  w = Math.max(w, minViewportWidth);
+  h = Math.max(h, minViewportHeight);
 
   // Edge detection constants
   var EDGE_THRESHOLD = 200; // pixels from edge to trigger expansion
@@ -120,10 +148,10 @@ SQL.Designer.prototype.sync = function () {
   // Auto-shrink logic: shrink when tables are far from edges
   var SHRINK_AMOUNT = 500; // pixels to shrink when triggered
 
-  // Calculate absolute minimum size (larger of table positions or original minSize)
-  // This is the smallest we can shrink to - never below table positions or original size
-  var absoluteMinWidth = Math.max(w, this.minSize[0]);
-  var absoluteMinHeight = Math.max(h, this.minSize[1]);
+  // Calculate absolute minimum size (larger of table positions, original minSize, or viewport)
+  // This is the smallest we can shrink to - never below table positions, original size, or viewport
+  var absoluteMinWidth = Math.max(w, this.minSize[0], minViewportWidth);
+  var absoluteMinHeight = Math.max(h, this.minSize[1], minViewportHeight);
 
   // Use expanded size (w, h) for shrink detection after expansion
   var expandedWidth = w;
@@ -183,6 +211,30 @@ SQL.Designer.prototype.sync = function () {
     // Shrink from bottom - reduce height, keeping origin at 0,0
     h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
   }
+
+  // Critical: After shrinking, verify all tables maintain at least 200px margin from edges
+  // If not, adjust size to maintain the margin
+  for (var i = 0; i < this.tables.length; i++) {
+    var t = this.tables[i];
+    // Right edge: table right edge + 200px margin
+    var requiredRight = t.x + t.width + EDGE_THRESHOLD;
+    if (w < requiredRight) {
+      w = requiredRight;
+    }
+    // Bottom edge: table bottom edge + 200px margin
+    var requiredBottom = t.y + t.height + EDGE_THRESHOLD;
+    if (h < requiredBottom) {
+      h = requiredBottom;
+    }
+    // Left edge: table left edge - 200px margin (but we can't go negative, so ensure table is at least 200px from left)
+    // Since origin is 0,0, we just need to ensure table.x >= 200, which means width must be at least table.x + table.width
+    // This is already handled by the table position check above
+    // Top edge: similar to left edge
+  }
+
+  // Final safety check: ensure area is always at least viewport size to prevent white space on initial load
+  w = Math.max(w, minViewportWidth);
+  h = Math.max(h, minViewportHeight);
 
   this.width = w;
   this.height = h;
@@ -783,6 +835,14 @@ SQL.Designer.prototype.alignTables = function () {
 
   this.sync();
   this.flagModified();
+  
+  // Reset scroll to top-left to avoid showing blank area after canvas resize
+  document.documentElement.scrollLeft = 0;
+  document.documentElement.scrollTop = 0;
+  if (document.body) {
+    document.body.scrollLeft = 0;
+    document.body.scrollTop = 0;
+  }
 };
 
 SQL.Designer.prototype.findNamedTable = function (name) {

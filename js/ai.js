@@ -787,6 +787,14 @@ SQL.AI.prototype.applyOrganization = function (positions) {
     }
   }
   this.owner.sync();
+  
+  // Reset scroll to top-left to avoid showing blank area after canvas resize
+  document.documentElement.scrollLeft = 0;
+  document.documentElement.scrollTop = 0;
+  if (document.body) {
+    document.body.scrollLeft = 0;
+    document.body.scrollTop = 0;
+  }
 };
 
 SQL.AI.prototype.getCompressedSchema = function () {
