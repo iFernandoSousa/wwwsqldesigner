@@ -502,14 +502,22 @@ label, input, select {
 }
 
 #windowok {
-    color: #FF4081;
+    color: #FFF;
+    background-color: #FF4081;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 2px 2px rgba(0, 0, 0, .2);
 }
 
 #windowok, #windowcancel {
     float: right;
 }
 
-#windowok:hover, #windowcancel:hover {
+#windowok:hover {
+    background-color: #ff5a92;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 2px 2px rgba(0, 0, 0, .2);
+    transition: all .2s ease-in-out;
+}
+
+#windowcancel:hover {
     background-color: #f2f2f2;
 }
 
@@ -573,6 +581,23 @@ label, input, select {
 
 #opts #optionsnotice {
     opacity: 0.7;
+}
+
+#opts #btnlistmodels {
+    color: #FFF;
+    background-color: #FF4081;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 2px 2px rgba(0, 0, 0, .2);
+}
+
+#opts #btnlistmodels:hover {
+    background-color: #ff5a92;
+    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 2px 2px rgba(0, 0, 0, .2);
+    transition: all .2s ease-in-out;
+}
+
+#opts #btnlistmodels:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 #opts hr {

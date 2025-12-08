@@ -26,6 +26,7 @@ SQL.Options.prototype.build = function () {
     this.dom.optionaiapikey = OZ.$("optionaiapikey");
     this.dom.optionautosave = OZ.$("optionautosave");
     this.dom.btnlistmodels = OZ.$("btnlistmodels");
+    this.dom.btnlistmodels.value = _("listmodels");
 
     var ids = [
         "language",

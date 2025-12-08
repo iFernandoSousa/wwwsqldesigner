@@ -124,7 +124,10 @@ SQL.IO.prototype.click = function () {
     this.dom.ta.value = "";
     this.dom.clientsql.value =
         _("clientsql") + " (" + window.DATATYPES.getAttribute("db") + ")";
-    this.owner.window.open(_("saveload"), this.dom.container);
+    // Pass a callback to show the Cancel button (callback does nothing, just closes on OK)
+    this.owner.window.open(_("saveload"), this.dom.container, function() {
+        // OK button just closes the dialog, no action needed
+    });
 };
 
 SQL.IO.prototype.fromXMLText = function (xml) {

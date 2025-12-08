@@ -291,8 +291,33 @@ body {
     padding: 1em;
 }
 
+#windowok {
+    color: #FFF;
+    background-color: #2196F3;
+    border: 1px solid #1976D2;
+}
+
 #windowok, #windowcancel {
     margin: 0em 1em 1em;
+}
+
+#windowok:hover {
+    background-color: #1976D2;
+}
+
+#opts #btnlistmodels {
+    color: #FFF;
+    background-color: #2196F3;
+    border: 1px solid #1976D2;
+}
+
+#opts #btnlistmodels:hover {
+    background-color: #1976D2;
+}
+
+#opts #btnlistmodels:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .small {

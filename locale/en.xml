@@ -60,6 +60,7 @@
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
     <string name="aiagent">AI Model</string>
+    <string name="listmodels">List Models</string>
 
     <!-- keys -->
     <string name="tablekeys">Keys</string>

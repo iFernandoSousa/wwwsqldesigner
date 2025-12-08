@@ -550,8 +550,10 @@ label, input, select {
 }
 
 #windowok {
-    color: #6750A4;
+    color: #FFF;
+    background-color: #6750A4;
     font-weight: 500;
+    box-shadow: 0 2px 4px rgba(103, 80, 164, 0.3), 0 1px 2px rgba(103, 80, 164, 0.2);
 }
 
 #windowok, #windowcancel {
@@ -559,7 +561,13 @@ label, input, select {
     margin-left: 8px;
 }
 
-#windowok:hover, #windowcancel:hover {
+#windowok:hover {
+    background-color: #7B61C4;
+    box-shadow: 0 4px 8px rgba(103, 80, 164, 0.3), 0 2px 4px rgba(103, 80, 164, 0.2);
+    transform: translateY(-1px);
+}
+
+#windowcancel:hover {
     background-color: #F3EDF7;
 }
 
@@ -635,6 +643,25 @@ label, input, select {
 
 #opts #optionsnotice {
     opacity: 0.6;
+}
+
+#opts #btnlistmodels {
+    color: #FFF;
+    background-color: #6750A4;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(103, 80, 164, 0.3), 0 1px 2px rgba(103, 80, 164, 0.2);
+}
+
+#opts #btnlistmodels:hover {
+    background-color: #7B61C4;
+    box-shadow: 0 4px 8px rgba(103, 80, 164, 0.3), 0 2px 4px rgba(103, 80, 164, 0.2);
+    transform: translateY(-1px);
+}
+
+#opts #btnlistmodels:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 #opts hr {
