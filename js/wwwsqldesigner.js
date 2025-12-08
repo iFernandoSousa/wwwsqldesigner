@@ -49,15 +49,74 @@ SQL.Designer.prototype.resetModified = function() {
 /* update area size */
 SQL.Designer.prototype.sync = function () {
     var w = this.minSize[0];
-    var h = this.minSize[0];
+    var h = this.minSize[1];
     for (var i = 0; i < this.tables.length; i++) {
         var t = this.tables[i];
         w = Math.max(w, t.x + t.width);
         h = Math.max(h, t.y + t.height);
     }
 
+    // Edge detection constants
+    var EDGE_THRESHOLD = 200; // pixels from edge to trigger expansion
+    var EXPANSION_AMOUNT = 500; // pixels to expand when triggered
+
+    // Use current design area size for edge detection (or calculated minimum if larger)
+    var currentWidth = Math.max(this.width || w, w);
+    var currentHeight = Math.max(this.height || h, h);
+
+    // Check if any table is near the edges and expand accordingly
+    var needsRightExpansion = false;
+    var needsBottomExpansion = false;
+    var needsLeftExpansion = false;
+    var needsTopExpansion = false;
+
+    for (var i = 0; i < this.tables.length; i++) {
+        var t = this.tables[i];
+        
+        // Check right edge - table is within threshold of right edge
+        if (t.x + t.width >= currentWidth - EDGE_THRESHOLD) {
+            needsRightExpansion = true;
+        }
+        
+        // Check bottom edge - table is within threshold of bottom edge
+        if (t.y + t.height >= currentHeight - EDGE_THRESHOLD) {
+            needsBottomExpansion = true;
+        }
+        
+        // Check left edge - table is within threshold of left edge
+        if (t.x <= EDGE_THRESHOLD) {
+            needsLeftExpansion = true;
+        }
+        
+        // Check top edge - table is within threshold of top edge
+        if (t.y <= EDGE_THRESHOLD) {
+            needsTopExpansion = true;
+        }
+    }
+
+    // Apply expansions
+    if (needsRightExpansion) {
+        w += EXPANSION_AMOUNT;
+    }
+    if (needsBottomExpansion) {
+        h += EXPANSION_AMOUNT;
+    }
+    if (needsLeftExpansion) {
+        // Expand from origin - just increase width, keeping origin at 0,0
+        w += EXPANSION_AMOUNT;
+    }
+    if (needsTopExpansion) {
+        // Expand from origin - just increase height, keeping origin at 0,0
+        h += EXPANSION_AMOUNT;
+    }
+
     this.width = w;
     this.height = h;
+    
+    // Update the actual DOM container size
+    this.dom.container.style.width = this.width + "px";
+    this.dom.container.style.height = this.height + "px";
+    
     this.map.sync();
 
     if (this.vector) {
