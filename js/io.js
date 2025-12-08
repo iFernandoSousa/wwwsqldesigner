@@ -18,6 +18,8 @@ SQL.IO = function (owner) {
         "clientload",
         "clientnew",
         "clientsql",
+        "downloadxml",
+        "uploadxml",
         "dropboxsave",
         "dropboxload",
         "dropboxlist",
@@ -45,6 +47,7 @@ SQL.IO = function (owner) {
 
     this.dom.ta = OZ.$("textarea");
     this.dom.backend = OZ.$("backend");
+    this.dom.uploadxmlfile = OZ.$("uploadxmlfile");
 
     /* init dropbox before hiding the container so it can adjust its buttons */
     this.dropBoxInit();
@@ -80,6 +83,9 @@ SQL.IO = function (owner) {
     OZ.Event.add(this.dom.dropboxsave, "click", this.dropboxsave.bind(this));
     OZ.Event.add(this.dom.dropboxlist, "click", this.dropboxlist.bind(this));
     OZ.Event.add(this.dom.clientsql, "click", this.clientsql.bind(this));
+    OZ.Event.add(this.dom.downloadxml, "click", this.downloadxml.bind(this));
+    OZ.Event.add(this.dom.uploadxml, "click", this.uploadxml.bind(this));
+    OZ.Event.add(this.dom.uploadxmlfile, "change", this.handleFileUpload.bind(this));
     OZ.Event.add(this.dom.quicksave, "click", this.quicksave.bind(this));
     OZ.Event.add(this.dom.serversave, "click", this.serversave.bind(this));
     OZ.Event.add(this.dom.serverload, "click", this.serverload.bind(this));
@@ -172,6 +178,88 @@ SQL.IO.prototype.clientload = function () {
     }
 
     this.fromXMLText(xml);
+};
+
+SQL.IO.prototype.downloadxml = function () {
+    // Generate XML if not already in textarea
+    var xml = this.dom.ta.value;
+    if (!xml) {
+        xml = this.owner.toXML();
+        this.dom.ta.value = xml;
+    }
+
+    // Get project name from various sources
+    var projectName = this.owner.getOption("lastUsedName") || 
+                      this.lastUsedName || 
+                      this._name || 
+                      "default";
+    
+    // Clean the project name for use as filename
+    projectName = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    if (!projectName) {
+        projectName = "default";
+    }
+    
+    // Create a blob with the XML content
+    var blob = new Blob([xml], { type: "application/xml" });
+    var url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary anchor element and trigger download
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = projectName + ".xml";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Clean up the URL object
+    window.URL.revokeObjectURL(url);
+};
+
+SQL.IO.prototype.uploadxml = function () {
+    // Trigger the file input click
+    this.dom.uploadxmlfile.click();
+};
+
+SQL.IO.prototype.handleFileUpload = function (e) {
+    var file = e.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    // Check if it's an XML file
+    if (!file.name.toLowerCase().endsWith(".xml")) {
+        alert("Please select an XML file.");
+        this.dom.uploadxmlfile.value = "";
+        return;
+    }
+
+    var reader = new FileReader();
+    var self = this;
+    
+    reader.onload = function (event) {
+        var xml = event.target.result;
+        if (!xml) {
+            alert(_("empty"));
+            return;
+        }
+        
+        // Put the XML in the textarea
+        self.dom.ta.value = xml;
+        
+        // Parse and load the XML the same way Load XML does
+        self.fromXMLText(xml);
+        
+        // Reset the file input
+        self.dom.uploadxmlfile.value = "";
+    };
+    
+    reader.onerror = function () {
+        alert("Error reading file.");
+        self.dom.uploadxmlfile.value = "";
+    };
+    
+    reader.readAsText(file);
 };
 
 SQL.IO.prototype.promptName = function (title, suffix) {
