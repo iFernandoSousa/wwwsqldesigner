@@ -118,6 +118,19 @@ SQL.Options.prototype.updateModels = function() {
     var provider = this.dom.optionaiprovider.value;
     var currentModel = this.owner.getOption("ai_agent");
     
+    // Try to load models from localStorage
+    if (provider) {
+        try {
+            var stored = localStorage.getItem("sql_ai_models_" + provider);
+            if (stored) {
+                var models = JSON.parse(stored);
+                if (Array.isArray(models) && models.length > 0) {
+                     CONFIG.AI_MODELS[provider] = models;
+                }
+            }
+        } catch(e) {}
+    }
+
     OZ.DOM.clear(this.dom.optionaiagent);
     
     // Add empty option
@@ -174,8 +187,14 @@ SQL.Options.prototype.listModels = function() {
                 
                 // Update Config to cache (optional) or just UI
                 CONFIG.AI_MODELS["Google Gemini"] = models;
+                
+                // Save to localStorage
+                try {
+                    localStorage.setItem("sql_ai_models_" + provider, JSON.stringify(models));
+                } catch(e) {}
+
                 self.updateModels();
-                alert("Models updated from Gemini API!");
+                // alert("Models updated from Gemini API!");
             } else if (data.error) {
                 throw new Error(data.error.message);
             }
