@@ -695,29 +695,74 @@ SQL.Designer.prototype.clearTables = function () {
 };
 
 SQL.Designer.prototype.alignTables = function () {
-    var win = OZ.DOM.win();
-    var avail = win[0] - OZ.$("bar").offsetWidth;
-    var x = 10;
-    var y = 10;
-    var max = 0;
+    // Ensure all tables are redrawn to get accurate dimensions
+    // This is important because table size depends on:
+    // - Number of fields
+    // - Field names length
+    // - Whether showtype/showsize options are enabled
+    for (var i = 0; i < this.tables.length; i++) {
+        this.tables[i].redraw();
+    }
 
-    this.tables.sort(function (a, b) {
-        return b.getRelations().length - a.getRelations().length;
+    if (this.tables.length === 0) {
+        return;
+    }
+
+    var padding = 80; // spacing between tables (50-100px as per AI function)
+    var startX = 50;
+    var startY = 50;
+    
+    // Get actual dimensions for each table
+    var tableData = [];
+    for (var i = 0; i < this.tables.length; i++) {
+        var table = this.tables[i];
+        var width = table.dom.container.offsetWidth || 150;
+        var height = table.dom.container.offsetHeight || 100;
+        tableData.push({
+            table: table,
+            width: width,
+            height: height
+        });
+    }
+
+    // Sort tables by number of relations (tables with more relations first)
+    tableData.sort(function (a, b) {
+        return b.table.getRelations().length - a.table.getRelations().length;
     });
 
-    for (var i = 0; i < this.tables.length; i++) {
-        var t = this.tables[i];
-        var w = t.dom.container.offsetWidth;
-        var h = t.dom.container.offsetHeight;
-        if (x + w > avail) {
-            x = 10;
-            y += 10 + max;
-            max = 0;
+    // Organize tables in a grid layout, respecting actual dimensions
+    var columns = [];
+    var currentX = startX;
+    var currentY = startY;
+    var maxRowHeight = 0;
+    var maxWidth = 0;
+
+    for (var i = 0; i < tableData.length; i++) {
+        var data = tableData[i];
+        var tableWidth = data.width;
+        var tableHeight = data.height;
+
+        // Check if table fits in current row
+        var win = OZ.DOM.win();
+        var availWidth = win[0] - OZ.$("bar").offsetWidth - startX;
+        
+        if (currentX + tableWidth + padding > availWidth && currentX > startX) {
+            // Move to next row
+            currentX = startX;
+            currentY += maxRowHeight + padding;
+            maxRowHeight = 0;
         }
-        t.moveTo(x, y);
-        x += 10 + w;
-        if (h > max) {
-            max = h;
+
+        // Position the table
+        data.table.moveTo(currentX, currentY);
+        
+        // Update tracking variables
+        currentX += tableWidth + padding;
+        if (tableHeight > maxRowHeight) {
+            maxRowHeight = tableHeight;
+        }
+        if (currentX > maxWidth) {
+            maxWidth = currentX;
         }
     }
 
