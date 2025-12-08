@@ -55,6 +55,7 @@
     <string name="vector">绘制平滑的连接 (如果浏览器支持)?</string>
     <string name="showsize">设计表格时显示字段大小?</string>
     <string name="showtype">设计表格时显示字段数据类型?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">样式</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

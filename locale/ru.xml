@@ -56,6 +56,7 @@
     <string name="vector">Рисовать сглаженные связи (если поддерживается браузером)?</string>
     <string name="showsize">Показывать размеры полей таблиц?</string>
     <string name="showtype">Показывать типы данных полей таблиц?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Стиль</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

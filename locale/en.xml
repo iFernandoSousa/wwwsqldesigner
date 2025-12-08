@@ -56,6 +56,7 @@
     <string name="vector">Draw smooth connectors (if supported by browser)?</string>
     <string name="showsize">Show field size in table design?</string>
     <string name="showtype">Show field datatype in table design?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Style</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

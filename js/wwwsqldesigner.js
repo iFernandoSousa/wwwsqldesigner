@@ -635,6 +635,8 @@ SQL.Designer.prototype.getOption = function (name) {
             return 0;
         case "showtype":
             return 0;
+        case "shownull":
+            return 0;
         case "pattern":
             return "%R_%T";
         case "hide":

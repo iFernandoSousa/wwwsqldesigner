@@ -302,6 +302,14 @@ SQL.Row.prototype.redraw = function () {
         typehint.push(elm.getAttribute("sql"));
     }
 
+    if (this.owner.owner.getOption("shownull")) {
+        if (this.data.nll) {
+            typehint.push("NULL");
+        } else {
+            typehint.push("NOT NULL");
+        }
+    }
+
     if (this.owner.owner.getOption("showsize") && this.data.size) {
         typehint.push("(" + this.data.size + ")");
     }

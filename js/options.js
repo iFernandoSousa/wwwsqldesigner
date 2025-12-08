@@ -21,6 +21,7 @@ SQL.Options.prototype.build = function () {
     this.dom.optionvector = OZ.$("optionvector");
     this.dom.optionshowsize = OZ.$("optionshowsize");
     this.dom.optionshowtype = OZ.$("optionshowtype");
+    this.dom.optionshownull = OZ.$("optionshownull");
     this.dom.optionaiagent = OZ.$("optionaiagent");
     this.dom.optionaiprovider = OZ.$("optionaiprovider");
     this.dom.optionaiapikey = OZ.$("optionaiapikey");
@@ -38,6 +39,7 @@ SQL.Options.prototype.build = function () {
         "vector",
         "showsize",
         "showtype",
+        "shownull",
         "optionsnapnotice",
         "optionpatternnotice",
         "optionsnotice",
@@ -120,6 +122,7 @@ SQL.Options.prototype.build = function () {
     OZ.Event.add(this.dom.optionstyle, "change", this.handleStyleChange.bind(this));
     OZ.Event.add(this.dom.optionshowtype, "change", this.handleShowTypeChange.bind(this));
     OZ.Event.add(this.dom.optionshowsize, "change", this.handleShowSizeChange.bind(this));
+    OZ.Event.add(this.dom.optionshownull, "change", this.handleShowNullChange.bind(this));
 
     this.dom.container.parentNode.removeChild(this.dom.container);
 };
@@ -239,6 +242,10 @@ SQL.Options.prototype.save = function () {
         "showtype",
         this.dom.optionshowtype.checked ? "1" : ""
     );
+    this.owner.setOption(
+        "shownull",
+        this.dom.optionshownull.checked ? "1" : ""
+    );
     this.owner.setOption("ai_provider", this.dom.optionaiprovider.value);
     this.owner.setOption("ai_agent", this.dom.optionaiagent.value);
     this.owner.setOption("ai_apikey", this.dom.optionaiapikey.value);
@@ -283,6 +290,13 @@ SQL.Options.prototype.handleShowSizeChange = function () {
     this.owner.updateRowDisplayOptions();
 };
 
+SQL.Options.prototype.handleShowNullChange = function () {
+    var showNull = this.dom.optionshownull.checked ? "1" : "";
+    this.owner.setOption("shownull", showNull);
+    // Redraw all rows to reflect the change
+    this.owner.updateRowDisplayOptions();
+};
+
 SQL.Options.prototype.click = function () {
     this.owner.window.open(_("options"), this.dom.container, this.save);
     this.dom.optionsnap.value = this.owner.getOption("snap");
@@ -291,6 +305,7 @@ SQL.Options.prototype.click = function () {
     this.dom.optionvector.checked = this.owner.getOption("vector");
     this.dom.optionshowsize.checked = this.owner.getOption("showsize");
     this.dom.optionshowtype.checked = this.owner.getOption("showtype");
+    this.dom.optionshownull.checked = this.owner.getOption("shownull");
     this.dom.optionaiprovider.value = this.owner.getOption("ai_provider") || "";
     this.dom.optionaiagent.value = this.owner.getOption("ai_agent") || "";
     this.dom.optionaiapikey.value = this.owner.getOption("ai_apikey") || "";

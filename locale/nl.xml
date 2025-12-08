@@ -56,6 +56,7 @@
     <string name="vector">Teken gekromde relaties (als de browser dit ondersteund)?</string>
     <string name="showsize">Toon veld omvang in tabelontwerp?</string>
     <string name="showtype">Toon veld type in tabelontwerp?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Stijl</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

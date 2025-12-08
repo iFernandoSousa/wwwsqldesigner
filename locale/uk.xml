@@ -56,6 +56,7 @@
     <string name="vector">Креслити плавні з'єднання (якщо підтримується переглядачем)?</string>
     <string name="showsize">Показувати розмір поля в дизайні таблиці?</string>
     <string name="showtype">Показувати тип даних поля в дизайні таблиці?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Стиль</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

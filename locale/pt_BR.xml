@@ -54,6 +54,7 @@
     <string name="optionpatternnotice">%T = tabela primária, %R = chave primária, %t = tabela estrangeira</string>
     <string name="hide">Esconder connectores na tela?</string>
     <string name="vector">Desenhar conectores suaves (se suportado pelo navegador)?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Estilo</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>

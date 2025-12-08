@@ -56,6 +56,7 @@
     <string name="vector">Zeichne gekrümmte Verbindungslinien (Browser-abhängig)?</string>
     <string name="showsize">Zeige Feldgröße im Tabellendesign?</string>
     <string name="showtype">Zeige Felddatentyp im Tabellendesign?</string>
+    <string name="shownull">Show NULL/NOT NULL in table design?</string>
     <string name="style">Stil</string>
     <string name="aiprovider">AI Provider</string>
     <string name="aiapikey">API Key</string>
