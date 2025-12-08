@@ -14,6 +14,7 @@ SQL.IO = function (owner) {
         "clientlocalload",
         "clientlocallist",
         "clientload",
+        "clientnew",
         "clientsql",
         "dropboxsave",
         "dropboxload",
@@ -55,6 +56,7 @@ SQL.IO = function (owner) {
     this.importresponse = this.importresponse.bind(this);
 
     OZ.Event.add(this.dom.saveload, "click", this.click.bind(this));
+    OZ.Event.add(this.dom.clientnew, "click", this.clientnew.bind(this));
     OZ.Event.add(
         this.dom.clientlocalsave,
         "click",
@@ -143,6 +145,16 @@ SQL.IO.prototype.fromXML = function (xmlDoc) {
     this.owner.fromXML(xmlDoc.documentElement);
     this.owner.window.close();
     return true;
+};
+
+SQL.IO.prototype.clientnew = function () {
+    if (this.owner.tables.length > 0) {
+        if (!confirm(_("confirmall"))) {
+            return;
+        }
+    }
+    this.owner.clearTables();
+    this.owner.window.close();
 };
 
 SQL.IO.prototype.clientsave = function () {

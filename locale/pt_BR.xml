@@ -75,6 +75,7 @@
     <string name="saveload">Salvar / Carregar</string>
     <string name="empty">Por favor cole os dados XML na área de texto abaixo e tente novamente.</string>
     <string name="client">Cliente</string>
+    <string name="clientnew">Novo Design</string>
     <string name="server">Servidor</string>
     <string name="output">Entrada / Saída</string>
     <string name="clientsave">Salvar XML</string>

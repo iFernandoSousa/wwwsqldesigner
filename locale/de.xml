@@ -76,6 +76,7 @@
     <string name="saveload">Speichern / Laden</string>
     <string name="empty">Bitte fügen Sie die XML-Daten in das untere Textfeld ein und versuchen Sie es erneut.</string>
     <string name="client">Client</string>
+    <string name="clientnew">New Design</string>
     <string name="server">Server</string>
     <string name="output">Eingabe / Ausgabe</string>
     <string name="clientsave">XML speichern</string>
