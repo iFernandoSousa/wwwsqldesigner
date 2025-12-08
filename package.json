@@ -1,0 +1,26 @@
+{
+  "name": "wwwsqldesigner",
+  "version": "2.7.0",
+  "description": "WWW SQL Designer allows users to create database designs, which can be saved/loaded and exported to SQL scripts.",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server . -p 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ondras/wwwsqldesigner.git"
+  },
+  "keywords": [
+    "sql",
+    "designer",
+    "database",
+    "erd",
+    "diagram"
+  ],
+  "author": "Ondrej Zara",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
+
