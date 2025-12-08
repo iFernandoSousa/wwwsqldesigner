@@ -32,10 +32,35 @@ SQL.AI.prototype.build = function() {
         opacity: 0;
         pointer-events: none;
     }
+    #ai-btn.loading {
+        animation: pulse 1.5s ease-in-out infinite;
+        pointer-events: none;
+    }
+    @keyframes pulse {
+        0%, 100% {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: translateX(-50%) scale(1.1);
+            opacity: 0.8;
+        }
+    }
     #ai-btn svg {
         fill: white;
         width: 24px;
         height: 24px;
+    }
+    #ai-btn.loading svg {
+        animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
     #ai-dialog {
         display: none;
@@ -257,7 +282,8 @@ SQL.AI.prototype.toggle = function() {
     } else {
         this.dom.dialog.classList.add('visible');
         this.dom.overlay.classList.add('visible');
-        this.dom.btn.classList.add('hidden');
+        // Keep button visible - don't hide it
+        this.dom.btn.classList.remove('hidden');
         this.dom.prompt.focus();
     }
 }
@@ -433,6 +459,7 @@ SQL.AI.prototype.submit = function() {
     }
 
     this.setStatus("Generating...");
+    this.startLoading();
     
     // Call API
     if (provider === "Google Gemini") {
@@ -440,11 +467,20 @@ SQL.AI.prototype.submit = function() {
     } else {
         alert("Provider " + provider + " not implemented yet.");
         this.setStatus("Error: Provider not supported");
+        this.stopLoading();
     }
 }
 
 SQL.AI.prototype.setStatus = function(msg) {
     document.getElementById('ai-status').innerText = msg;
+}
+
+SQL.AI.prototype.startLoading = function() {
+    this.dom.btn.classList.add('loading');
+}
+
+SQL.AI.prototype.stopLoading = function() {
+    this.dom.btn.classList.remove('loading');
 }
 
 SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
@@ -536,6 +572,7 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
         return response.json(); 
     })
     .then(function(data) {
+        self.stopLoading();
         if (data.error) {
             throw new Error(data.error.message);
         }
@@ -549,6 +586,7 @@ SQL.AI.prototype.callGemini = function(userPrompt, key, agent) {
         self.handleResponse(text);
     })
     .catch(function(err) {
+        self.stopLoading();
         alert("AI Error: " + err.message);
         self.setStatus("Error: " + err.message);
     });
@@ -631,6 +669,7 @@ SQL.AI.prototype.organizeTables = function() {
     }
     
     document.body.style.cursor = "wait";
+    this.startLoading();
     
     // Ensure all tables are redrawn to get accurate dimensions
     // This is important because table size depends on:
@@ -693,6 +732,7 @@ SQL.AI.prototype.callGeminiForOrganization = function(prompt, key) {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         document.body.style.cursor = "default";
+        self.stopLoading();
         if (data.error) throw new Error(data.error.message);
         
         var text = data.candidates[0].content.parts[0].text;
@@ -704,6 +744,7 @@ SQL.AI.prototype.callGeminiForOrganization = function(prompt, key) {
     })
     .catch(function(err) {
         document.body.style.cursor = "default";
+        self.stopLoading();
         alert("AI Organization Error: " + err.message);
     });
 }
