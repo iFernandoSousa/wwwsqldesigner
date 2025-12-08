@@ -6,6 +6,7 @@
     <string name="removetable">Вилучити таблицю</string>
     <string name="removetables">Вилучити таблиці</string>
     <string name="aligntables">Вирівняти таблиці</string>
+    <string name="aiorganize">Organize using AI</string>
     <string name="cleartables">Очистити таблиці</string>
     <string name="confirmall">Справді вилучити всі таблиці</string>
     <string name="newtable">нова таблиця</string>

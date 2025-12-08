@@ -6,6 +6,7 @@
     <string name="removetable">Usuń tabelę</string>
     <string name="removetables">Usuń tabele</string>
     <string name="aligntables">Wyrównaj tabele</string>
+    <string name="aiorganize">Organize using AI</string>
     <string name="cleartables">Wyczyść tabele</string>
     <string name="confirmall">Czy na pewno usunąć wszystkie tabele</string>
     <string name="newtable">nowa tabela</string>

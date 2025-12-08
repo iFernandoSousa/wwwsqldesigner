@@ -623,6 +623,86 @@ SQL.AI.prototype.updateSchema = function(xmlRoot) {
     this.owner.sync();
 }
 
+SQL.AI.prototype.organizeTables = function() {
+    var key = this.owner.getOption("ai_apikey");
+    if (!key) {
+        alert("Please configure the AI API Key in Options.");
+        return;
+    }
+    
+    document.body.style.cursor = "wait";
+    
+    var schema = this.getCompressedSchema();
+    var prompt = `Analyze the following database schema and provide optimal X, Y coordinates for each table to create a clear, readable diagram.
+The canvas is infinite but try to keep them within 0,0 to 2000,2000.
+Group related tables together. Minimize crossing lines.
+
+Schema:
+${schema}
+
+Return STRICT JSON format only:
+{
+  "tableName1": { "x": 100, "y": 100 },
+  "tableName2": { "x": 300, "y": 100 }
+}`;
+
+    this.callGeminiForOrganization(prompt, key);
+}
+
+SQL.AI.prototype.callGeminiForOrganization = function(prompt, key) {
+    var agent = this.owner.getOption("ai_agent");
+    var model = agent || "gemini-1.5-flash"; 
+    var apiVersion = "v1beta";
+    var url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${key}`;
+
+    var payload = {
+        contents: [{
+            parts: [{
+                text: prompt
+            }]
+        }],
+        generationConfig: {
+            responseMimeType: "application/json"
+        }
+    };
+    
+    var self = this;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        document.body.style.cursor = "default";
+        if (data.error) throw new Error(data.error.message);
+        
+        var text = data.candidates[0].content.parts[0].text;
+        // Clean markdown
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        var positions = JSON.parse(text);
+        self.applyOrganization(positions);
+    })
+    .catch(function(err) {
+        document.body.style.cursor = "default";
+        alert("AI Organization Error: " + err.message);
+    });
+}
+
+SQL.AI.prototype.applyOrganization = function(positions) {
+    for (var name in positions) {
+        var table = this.owner.findNamedTable(name);
+        if (table) {
+            var pos = positions[name];
+            table.moveTo(pos.x, pos.y);
+        }
+    }
+    this.owner.sync();
+}
+
 SQL.AI.prototype.getCompressedSchema = function() {
     var schema = "";
     var tables = this.owner.tables;

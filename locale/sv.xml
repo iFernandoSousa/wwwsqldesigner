@@ -6,6 +6,7 @@
     <string name="removetable">Ta bort tabell</string>
     <string name="removetables">Ta bort tabeller</string>
     <string name="aligntables">Räta upp tabeller</string>
+    <string name="aiorganize">Organize using AI</string>
     <string name="cleartables">Ta bort alla tabeller</string>
     <string name="confirmall">Vill du verkligen ta bort alla tabeller</string>
     <string name="newtable">Ny tabell</string>

@@ -16,6 +16,7 @@ SQL.TableManager = function (owner) {
         "addtable",
         "removetable",
         "aligntables",
+        "aiorganize",
         "cleartables",
         "addrow",
         "edittable",
@@ -48,6 +49,13 @@ SQL.TableManager = function (owner) {
         this.dom.aligntables,
         "click",
         this.owner.alignTables.bind(this.owner)
+    );
+    OZ.Event.add(
+        this.dom.aiorganize,
+        "click",
+        function() {
+            this.owner.ai.organizeTables();
+        }.bind(this)
     );
     OZ.Event.add(this.dom.edittable, "click", this.edit.bind(this));
     OZ.Event.add(this.dom.tablekeys, "click", this.keys.bind(this));
