@@ -22,7 +22,7 @@ SQL.Toggle.prototype._switch = function (state) {
         OZ.$("bar").style.maxHeight = "";
     } else {
         OZ.$("bar").style.overflow = "hidden";
-        OZ.$("bar").style.maxHeight = this._elm.offsetHeight + "px";
+        OZ.$("bar").style.maxHeight = "56px";
     }
     this._elm.className = this._state ? "on" : "off";
 };
