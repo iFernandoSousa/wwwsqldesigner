@@ -632,13 +632,29 @@ SQL.AI.prototype.organizeTables = function() {
     
     document.body.style.cursor = "wait";
     
+    // Ensure all tables are redrawn to get accurate dimensions
+    // This is important because table size depends on:
+    // - Number of fields
+    // - Field names length
+    // - Whether showtype/showsize options are enabled
+    for (var i = 0; i < this.owner.tables.length; i++) {
+        this.owner.tables[i].redraw();
+    }
+    
     var schema = this.getCompressedSchema();
+    var tableDimensions = this.getTableDimensions();
     var prompt = `Analyze the following database schema and provide optimal X, Y coordinates for each table to create a clear, readable diagram.
-The canvas is infinite but try to keep them within 0,0 to 2000,2000.
+The canvas is infinite but try to keep them within 0,0 to 4000,4000.
 Group related tables together. Minimize crossing lines.
+
+IMPORTANT: Each table has specific dimensions (width x height in pixels). You MUST position tables so they don't overlap.
+Leave adequate spacing between tables (at least 50-100 pixels padding).
 
 Schema:
 ${schema}
+
+Table Dimensions (width x height in pixels):
+${tableDimensions}
 
 Return STRICT JSON format only:
 {
@@ -751,4 +767,22 @@ SQL.AI.prototype.getCompressedSchema = function() {
         schema += "\n";
     }
     return schema;
+}
+
+SQL.AI.prototype.getTableDimensions = function() {
+    var dimensions = "";
+    var tables = this.owner.tables;
+    
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i];
+        // Get dimensions directly from DOM to ensure accuracy
+        // This accounts for actual rendered size including:
+        // - Number of fields
+        // - Field name lengths
+        // - Whether showtype/showsize options are enabled
+        var width = table.dom.container.offsetWidth || 150;
+        var height = table.dom.container.offsetHeight || 100;
+        dimensions += table.getTitle() + ": " + width + "px × " + height + "px\n";
+    }
+    return dimensions;
 }
