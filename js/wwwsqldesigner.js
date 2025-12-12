@@ -91,6 +91,10 @@ SQL.Designer.prototype.sync = function () {
   w = Math.max(w, minViewportWidth);
   h = Math.max(h, minViewportHeight);
 
+  // Store base calculated size BEFORE expansion for shrink logic
+  var baseCalculatedWidth = w;
+  var baseCalculatedHeight = h;
+
   // Edge detection constants
   var EDGE_THRESHOLD = 200; // pixels from edge to trigger expansion
   var EXPANSION_AMOUNT = 500; // pixels to expand when triggered
@@ -146,12 +150,11 @@ SQL.Designer.prototype.sync = function () {
   }
 
   // Auto-shrink logic: shrink when tables are far from edges
-  var SHRINK_AMOUNT = 500; // pixels to shrink when triggered
-
   // Calculate absolute minimum size (larger of table positions, original minSize, or viewport)
   // This is the smallest we can shrink to - never below table positions, original size, or viewport
-  var absoluteMinWidth = Math.max(w, this.minSize[0], minViewportWidth);
-  var absoluteMinHeight = Math.max(h, this.minSize[1], minViewportHeight);
+  // CRITICAL: Use baseCalculatedWidth/Height (BEFORE expansion) so shrink logic can detect when canvas is larger than needed
+  var absoluteMinWidth = Math.max(baseCalculatedWidth, this.minSize[0], minViewportWidth);
+  var absoluteMinHeight = Math.max(baseCalculatedHeight, this.minSize[1], minViewportHeight);
 
   // Use expanded size (w, h) for shrink detection after expansion
   var expandedWidth = w;
@@ -197,19 +200,23 @@ SQL.Designer.prototype.sync = function () {
   }
 
   // Apply shrinking (shrink back to absolute minimum when tables are far from edges)
-  if (allTablesFarFromRight && expandedWidth > absoluteMinWidth) {
-    w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+  // CRITICAL: Compare current canvas size (this.width/this.height) to absoluteMin, not expandedWidth/Height
+  // When no expansion occurs, expandedWidth equals calculated min, so shrink check would fail even if canvas is too large
+  // When tables are far from edges, shrink directly to absolute minimum (not incrementally)
+  // This ensures immediate shrinking when tables are moved away from edges
+  if (allTablesFarFromRight && this.width > absoluteMinWidth) {
+    w = absoluteMinWidth;
   }
-  if (allTablesFarFromBottom && expandedHeight > absoluteMinHeight) {
-    h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
+  if (allTablesFarFromBottom && this.height > absoluteMinHeight) {
+    h = absoluteMinHeight;
   }
-  if (allTablesFarFromLeft && expandedWidth > absoluteMinWidth) {
+  if (allTablesFarFromLeft && this.width > absoluteMinWidth) {
     // Shrink from right - reduce width, keeping origin at 0,0
-    w = Math.max(expandedWidth - SHRINK_AMOUNT, absoluteMinWidth);
+    w = absoluteMinWidth;
   }
-  if (allTablesFarFromTop && expandedHeight > absoluteMinHeight) {
+  if (allTablesFarFromTop && this.height > absoluteMinHeight) {
     // Shrink from bottom - reduce height, keeping origin at 0,0
-    h = Math.max(expandedHeight - SHRINK_AMOUNT, absoluteMinHeight);
+    h = absoluteMinHeight;
   }
 
   // Critical: After shrinking, verify all tables maintain at least 200px margin from edges
@@ -236,12 +243,25 @@ SQL.Designer.prototype.sync = function () {
   w = Math.max(w, minViewportWidth);
   h = Math.max(h, minViewportHeight);
 
+  // Check if canvas shrunk - if so, reset scroll to prevent showing blank area
+  var canvasShrunk = (this.width && this.width > w) || (this.height && this.height > h);
+  
   this.width = w;
   this.height = h;
 
   // Update the actual DOM container size
   this.dom.container.style.width = this.width + "px";
   this.dom.container.style.height = this.height + "px";
+
+  // Reset scroll position if canvas shrunk to prevent showing blank area
+  if (canvasShrunk) {
+    document.documentElement.scrollLeft = 0;
+    document.documentElement.scrollTop = 0;
+    if (document.body) {
+      document.body.scrollLeft = 0;
+      document.body.scrollTop = 0;
+    }
+  }
 
   this.map.sync();
 
